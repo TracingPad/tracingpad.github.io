@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- START SEO OPTIMIZATION -->
+    <!-- Updated Title for better search visibility -->
+    <title>Learn Telugu Alphabet (Aksharamala) Tracing Online | Free Practice Slate</title>
+    
+    <!-- Meta Description: A concise summary for search results -->
+    <meta name="description" content="Practice tracing the complete Telugu Aksharamala (Vowels - Achulu and Consonants - Hallulu) on a realistic digital slate. Free and interactive Telugu letter learning tool.">
+    
+    <!-- Keywords (Optional, but helpful) -->
+    <meta name="keywords" content="Telugu alphabet tracing, Telugu Aksharamala, Learn Telugu letters, Telugu writing practice, Achulu, Hallulu, Telugu online slate, free Telugu learning">
+    
+    <!-- Open Graph Tags for Social Media Sharing -->
+    <meta property="og:title" content="Telugu Aksharamala Tracing Slate | Interactive Learning">
+    <meta property="og:description" content="Practice tracing Telugu vowels and consonants for free on this fun, digital blackboard. Perfect for beginners!">
+    <meta property="og:type" content="website">
+    <!-- END SEO OPTIMIZATION -->
+
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind to use Inter font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        /* The BODY now serves as the neutral, screen-filling background, centering the app */
+        body {
+            font-family: 'Inter', sans-serif;
+            
+            /* CHANGED: Replaced the flat light gray with a realistic wood gradient */
+            /* This gradient simulates the wood frame's color and texture */
+            background: linear-gradient(180deg, #965b38 0%, #7d4825 50%, #683818 100%);
+            
+            padding: 0; 
+            margin: 0;
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh; /* Adjusted for better vertical centering */
+            /* REMOVED: overflow: hidden; to allow scrolling */
+        }
+
+        /* The #app-frame styling is removed as the element is deleted */
+        
+        /* Custom style for the canvas container (The Dark Slate Board) */
+        #canvas-container {
+            /* New margins and max-width for the floating slate look */
+            /* UPDATED: Increased width for more tracing space on all screens */
+            width: 98vw; 
+            /* MODIFIED: Swapped fixed px max-width to responsive vw value */
+            max-width: 92vw; 
+            max-height: 82vh; /* Limits the maximum height on large screens */
+            margin-bottom: 2rem;
+            
+            /* The slate is slightly taller than it is wide to accommodate the header/footer */
+            aspect-ratio: 1.2 / 1; 
+            background-color: #2d3a3a; /* Dark Slate Green/Blackboard Color */
+            
+            border: none;
+            /* CHANGED: Increased border radius for a rounder look */
+            border-radius: 1.5rem; 
+            
+            /* Changed to an outer shadow to make it float on the page */
+            /* box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); Slightly darker shadow for contrast */
+
+            position: relative;
+            /* Added to clip the internal canvas content to the new border radius */
+            overflow: hidden;
+        }
+
+        /* Style for the tracing letter guide (Chalk-like) */
+        #tracing-guide {
+            position: absolute;
+            top: 55%; /* ADJUSTED: Moved from 50% to 55% to shift it down */
+            left: 50%;
+            transform: translate(-50%, -50%); /* Keeps the center-alignment */
+            /* UPDATED: Reduced size for more tracing space */
+            font-size: 30vw; 
+            max-width: 90%;
+            text-align: center;
+            line-height: 1;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.1); /* Very faint white/chalk guide */
+            user-select: none;
+            pointer-events: none;
+        }
+        /* Ensure canvas fills the container */
+        #tracingCanvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center">
+
+    <!-- Character Selector Modal (Stays fixed to the entire viewport) -->
+    <div id="character-selector-modal" class="fixed inset-0 bg-gray-900/90 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-2xl font-bold text-gray-800">Select Character</h3>
+                <button id="closeModalBtn" class="text-gray-500 hover:text-gray-800 text-3xl font-light leading-none">&times;</button>
+            </div>
+            <!-- Max height is applied here so the internal grid scrolls, but not the whole page -->
+            <div id="character-grid" class="grid grid-cols-6 sm:grid-cols-8 gap-3 max-h-[70vh] overflow-y-auto p-2">
+                <!-- Characters will be dynamically inserted here -->
+            </div>
+            <p class="mt-4 text-sm text-gray-600 text-center">Click a character to start tracing.</p>
+        </div>
+    </div>
+    
+    <!-- Main Title & Buy Me a Coffee (Updated to center the title) -->
+    <!-- Added 'relative' for absolute positioning of the link -->
+    <div class="w-full max-w-[92vw] mx-auto mb-4 px-4 flex justify-center items-center relative"> 
+        <!-- Main Title (Non-interactive text) - Now centered naturally -->
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white/90 drop-shadow-lg user-select-none pointer-events-none">Slate Tracing Pad</h1> 
+        
+        <!-- Buy Me A Coffee Link (Positioned absolutely to the right) -->
+        <a href="https://www.buymeacoffee.com/saigandikota" target="_blank" class="absolute right-4 inline-flex items-center space-x-2 px-3 py-1 text-sm bg-yellow-400 text-gray-900 font-bold rounded-full shadow-lg hover:bg-yellow-300 transition transform hover:scale-105">
+            <span>Buy me a Coffee ☕</span>
+        </a>
+    </div>
+
+    <!-- Canvas Area (The Slate - now a direct child of body) -->
+    <div id="canvas-container">
+        
+        <!-- Header Content (Subtitle and Category Buttons) -->
+        <!-- UPDATED: Increased pt-5 to push content down slightly -->
+        <div id="slate-header-content" class="absolute top-0 left-1/2 transform -translate-x-1/2 text-center text-white/90 w-full z-20 px-8 pt-5 pb-3">
+            
+            <!-- Static text (non-interactive) - Subtitle -->
+            <div class="user-select-none pointer-events-none mb-3">
+                <p class="text-base sm:text-lg font-medium opacity-80">Practice Telugu Alphabet (అక్షరమాల)</p>
+            </div>
+            
+            <!-- Category buttons (Clickable) -->
+            <div class="flex justify-center space-x-3 mb-3">
+                <button id="achuluBtn" class="px-3 py-1 text-sm bg-indigo-600 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 transition">
+                    అచ్చులు - Achulu
+                </button>
+                <button id="halluluBtn" class="px-3 py-1 text-sm bg-indigo-600 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 transition">
+                    హల్లులు - Hallulu
+                </button>
+            </div>
+
+            <!-- Pronunciation Text REMOVED FROM HERE -->
+        </div>
+        
+        <!-- Clear Button -->
+        <!-- UPDATED: Moved the button down from top-4 to top-6 and right from right-4 to right-6 -->
+        <button id="clearBtn" class="absolute top-6 right-6 p-2 bg-red-600 text-white rounded-full shadow-xl hover:bg-red-700 transition z-30" title="Clear Slate (Reset)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-3.26 1.17l-1.39 1.18"/>
+                <path d="M2 13v-3h3"/>
+            </svg>
+        </button>
+
+        <!-- Navigation Arrows -->
+        <button id="prevBtn" class="absolute left-2 top-1/2 transform -translate-y-1/2 p-3 bg-blue-600 text-white rounded-full shadow-xl hover:bg-blue-700 transition disabled:opacity-50 z-20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        </button>
+        <button id="nextBtn" class="absolute right-2 top-1/2 transform -translate-y-1/2 p-3 bg-blue-600 text-white rounded-full shadow-xl hover:bg-blue-700 transition disabled:opacity-50 z-20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+        
+        <!-- Faint Telugu character guide -->
+        <div id="tracing-guide"></div>
+
+        <!-- Pronunciation Audio Button and Text Container (MOVED TEXT HERE) -->
+        <div id="pronunciation-container" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex items-center space-x-2">
+            
+            <!-- Pronunciation Text -->
+            <div id="pronunciation-text" class="text-sm sm:text-lg font-medium text-white/80 user-select-none pointer-events-none whitespace-nowrap">
+                Pronunciation: a (as in am)
+            </div>
+
+            <button id="pronounceAudioBtn" class="text-white/80 hover:text-white transition p-1 rounded-full hover:bg-white/10" title="Listen to Pronunciation">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-white/90">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                </svg>
+            </button>
+        </div>
+
+        <canvas id="tracingCanvas"></canvas>
+    </div>
+    
+    <!-- OLD Buy Me A Coffee Link (Footer) REMOVED -->
+
+    <script>
+        // --- Configuration and State ---
+        // Dark slate color used for the canvas background, needed for the reset.
+        const SLATE_BACKGROUND_COLOR = '#2d3a3a'; 
+        
+        // --- FIXED SETTINGS (Simulating values from a hidden Settings Page) ---
+        // Chalk Color: Fixed to white
+        const DEFAULT_CHALK_COLOR = '#ffffff'; 
+        // Chalk Thickness: Fixed to 20px
+        let currentBrushSize = 20; 
+        // -------------------------------------------------------------------
+
+        const TELUGU_VOWELS = [
+            { char: 'అ', pron: 'a (as in am)' },
+            { char: 'ఆ', pron: 'aa (as in arm)' },
+            { char: 'ఇ', pron: 'i (as in it)' },
+            { char: 'ఈ', pron: 'ee (as in eat)' },
+            { char: 'ఉ', pron: 'u (as in put)' },
+            { char: 'ఊ', pron: 'oo (as in shoot)' },
+            { char: 'ఋ', pron: 'ru (vocalic r, as in ripple)' },
+            { char: 'ౠ', pron: 'ruu (long vocalic r)' },
+            { char: 'ఎ', pron: 'e (as in hen)' },
+            { char: 'ఏ', pron: 'E (as in hail)' },
+            { char: 'ఐ', pron: 'ai (as in aisle)' },
+            { char: 'ఒ', pron: 'o (as in open)' },
+            { char: 'ఓ', pron: 'O (as in boat)' },
+            { char: 'ఔ', pron: 'au (as in owl)' },
+            { char: 'అం', pron: 'am (Anuswara)' },
+            { char: 'అః', pron: 'aha (Visarga)' },
+        ];
+
+        const TELUGU_CONSONANTS = [
+            { char: 'క', pron: 'ka (as in kite)' },
+            { char: 'ఖ', pron: 'kha (aspirated k)' },
+            { char: 'గ', pron: 'ga (as in gate)' },
+            { char: 'ఘ', pron: 'gha (aspirated g)' },
+            { char: 'ఙ', pron: 'nga (as in sing)' },
+            { char: 'చ', pron: 'cha (as in chair)' },
+            { char: 'ఛ', pron: 'chha (aspirated ch)' },
+            { char: 'జ', pron: 'ja (as in joy)' },
+            { char: 'ఝ', pron: 'jha (aspirated j)' },
+            { char: 'ఞ', pron: 'nya (as in canyon)' },
+            { char: 'ట', pron: 'ta (retroflex t)' },
+            { char: 'ఠ', pron: 'tha (aspirated retroflex t)' },
+            { char: 'డ', pron: 'da (retroflex d)' },
+            { char: 'ఢ', pron: 'dha (aspirated retroflex d)' },
+            { char: 'ణ', pron: 'na (retroflex n)' },
+            { char: 'త', pron: 'tha (dental t)' },
+            { char: 'థ', pron: 'thha (aspirated dental t)' },
+            { char: 'ద', pron: 'dha (dental d)' },
+            { char: 'ధ', pron: 'dhha (aspirated dental d)' },
+            { char: 'న', pron: 'na (dental n)' },
+            { char: 'ప', pron: 'pa (as in pot)' },
+            { char: 'ఫ', pron: 'pha (aspirated p)' },
+            { char: 'బ', pron: 'ba (as in bat)' },
+            { char: 'భ', pron: 'bha (aspirated b)' },
+            { char: 'మ', pron: 'ma (as in mat)' },
+            { char: 'య', pron: 'ya (as in yes)' },
+            { char: 'ర', pron: 'ra (soft r)' },
+            { char: 'ల', pron: 'la (as in lip)' },
+            { char: 'వ', pron: 'va (as in van)' },
+            { char: 'శ', pron: 'sha (palatal s)' },
+            { char: 'ష', pron: 'Sha (retroflex s)' },
+            { char: 'స', pron: 'sa (as in sun)' },
+            { char: 'హ', pron: 'ha (as in hat)' },
+            { char: 'ళ', pron: 'la (retroflex l)' },
+            { char: 'క్ష', pron: 'ksha (ks+h)' },
+            { char: 'ఱ', pron: 'ra (trilled r)' },
+        ];
+        
+        // Combine both sets into the main character list
+        const TELUGU_CHARACTERS = [
+            ...TELUGU_VOWELS,
+            ...TELUGU_CONSONANTS
+        ];
+
+        let currentCharacterIndex = 0;
+        let isDrawing = false;
+        let currentBrushColor = DEFAULT_CHALK_COLOR; 
+
+        // --- DOM Elements ---
+        const canvas = document.getElementById('tracingCanvas');
+        const ctx = canvas.getContext('2d');
+        const guideDiv = document.getElementById('tracing-guide');
+        // Renamed to target the new element holding the text
+        const pronunciationTextDisplay = document.getElementById('pronunciation-text'); 
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const clearBtn = document.getElementById('clearBtn'); 
+        const canvasContainer = document.getElementById('canvas-container');
+        const pronounceAudioBtn = document.getElementById('pronounceAudioBtn');
+        
+        // Modal Elements
+        const modal = document.getElementById('character-selector-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const charGrid = document.getElementById('character-grid');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const achuluBtn = document.getElementById('achuluBtn');
+        const halluluBtn = document.getElementById('halluluBtn');
+
+        // --- Core Canvas Functions ---
+
+        /**
+         * Resizes the canvas to fill its container while maintaining a square aspect ratio
+         * and redrawing the tracing guide.
+         */
+        function resizeCanvas() {
+            // Use clientWidth to determine the size of the square slate
+            const containerSize = canvasContainer.clientWidth; 
+            canvas.width = containerSize;
+            canvas.height = canvasContainer.clientHeight; // Use container height
+            
+            // Reapply drawing settings
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Re-render the guide text
+            updateCharacterDisplay();
+        }
+
+        /**
+         * Clears the canvas entirely (the "Reset" function).
+         */
+        function clearCanvas() {
+            // Draw a rectangle with the slate color to simulate clearing the canvas
+            ctx.fillStyle = SLATE_BACKGROUND_COLOR;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        /**
+         * Updates the displayed Telugu character and the guide text.
+         */
+        function updateCharacterDisplay() {
+            // Now uses the combined TELUGU_CHARACTERS array
+            const charData = TELUGU_CHARACTERS[currentCharacterIndex];
+            pronunciationTextDisplay.textContent = `Pronunciation: ${charData.pron}`;
+            guideDiv.textContent = charData.char;
+            
+            // Update button states
+            prevBtn.disabled = currentCharacterIndex === 0;
+            // Uses the combined array length for the maximum index
+            nextBtn.disabled = currentCharacterIndex === TELUGU_CHARACTERS.length - 1;
+        }
+
+        /**
+         * Sets the drawing style (chalk color and fixed thickness).
+         */
+        function setDrawingStyle() {
+            ctx.strokeStyle = currentBrushColor;
+            ctx.lineWidth = currentBrushSize;
+        }
+
+        // --- Drawing Handlers (Mouse/Touch) ---
+
+        /**
+         * Gets the position of the pointer (mouse or touch) relative to the canvas.
+         * @param {Event} event - The mouse or touch event.
+         * @returns {object} {x, y} coordinates.
+         */
+        function getPos(event) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+            
+            if (event.touches && event.touches.length > 0) {
+                // Handle touch events
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else {
+                // Handle mouse events
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+            
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+        
+        function startDrawing(event) {
+            event.preventDefault();
+            isDrawing = true;
+            const { x, y } = getPos(event);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            setDrawingStyle(); // Apply brush settings on start
+        }
+
+        function draw(event) {
+            event.preventDefault();
+            // Drawing logic only runs if isDrawing is true
+            if (!isDrawing) return;
+
+            const { x, y } = getPos(event);
+            
+            // FIX: Explicitly check if the position is outside the canvas boundaries.
+            // If it is, stop drawing immediately to prevent 'chalk leakage'.
+            if (x < 0 || x > canvas.width || y < 0 || y > canvas.height) {
+                stopDrawing(); 
+                return;
+            }
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath(); // Start a new path segment for smoother lines
+            ctx.moveTo(x, y);
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // --- Audio Functions (Simulated) ---
+
+        /**
+         * Simulates an audio request for the current character.
+         */
+        function handlePronounceAudio() {
+            // This function would typically call the Gemini TTS API 
+            // to generate and play the audio for the current character.
+            const currentCharacter = TELUGU_CHARACTERS[currentCharacterIndex].char;
+            console.log(`Simulating audio request for character: ${currentCharacter}`);
+            
+            // Simple visual feedback
+            const icon = pronounceAudioBtn.querySelector('svg');
+            icon.classList.add('animate-pulse');
+            setTimeout(() => {
+                icon.classList.remove('animate-pulse');
+            }, 500);
+        }
+
+        // --- Modal Functions ---
+        
+        /**
+         * Finds the index of a character in the combined TELUGU_CHARACTERS array.
+         */
+        function getCharacterIndex(char) {
+            return TELUGU_CHARACTERS.findIndex(data => data.char === char);
+        }
+
+        /**
+         * Opens the character selector modal and populates the grid.
+         * @param {string} type - 'achulu' or 'hallulu'
+         */
+        function openSelectorModal(type) {
+            let characters;
+            if (type === 'achulu') {
+                characters = TELUGU_VOWELS;
+                modalTitle.textContent = 'Select Vowel (అచ్చులు)';
+            } else {
+                characters = TELUGU_CONSONANTS;
+                modalTitle.textContent = 'Select Consonant (హల్లులు)';
+            }
+
+            // Populate the grid
+            charGrid.innerHTML = '';
+            characters.forEach(data => {
+                const button = document.createElement('button');
+                // Use larger size for readability in the modal
+                button.className = 'char-button text-3xl sm:text-4xl font-bold p-2 rounded-lg bg-gray-100 hover:bg-yellow-100 transition shadow-md'; 
+                button.textContent = data.char;
+                button.dataset.char = data.char;
+
+                button.addEventListener('click', () => {
+                    const charIndex = getCharacterIndex(data.char);
+                    if (charIndex !== -1) {
+                        currentCharacterIndex = charIndex;
+                        clearCanvas();
+                        updateCharacterDisplay();
+                        closeSelectorModal();
+                    }
+                });
+                charGrid.appendChild(button);
+            });
+
+            modal.classList.remove('hidden');
+        }
+
+        /**
+         * Closes the character selector modal.
+         */
+        function closeSelectorModal() {
+            modal.classList.add('hidden');
+        }
+
+        // --- Event Listeners and Initialization ---
+
+        function init() {
+            // Initial setup and clear the canvas to the slate color
+            resizeCanvas();
+            clearCanvas(); 
+            updateCharacterDisplay();
+            setDrawingStyle(); // Set initial color and size
+
+            // 1. Canvas Drawing Listeners
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('touchstart', startDrawing, { passive: false });
+
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('touchmove', draw, { passive: false });
+
+            canvas.addEventListener('mouseout', stopDrawing);
+
+            window.addEventListener('mouseup', stopDrawing); 
+            window.addEventListener('touchend', stopDrawing); 
+            window.addEventListener('touchcancel', stopDrawing); 
+
+            // 2. Navigation Listeners
+            prevBtn.addEventListener('click', () => {
+                if (currentCharacterIndex > 0) {
+                    currentCharacterIndex--;
+                    clearCanvas();
+                    updateCharacterDisplay();
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentCharacterIndex < TELUGU_CHARACTERS.length - 1) {
+                    currentCharacterIndex++;
+                    clearCanvas();
+                    updateCharacterDisplay();
+                }
+            });
+
+            // 3. Tool Listeners
+            clearBtn.addEventListener('click', clearCanvas);
+            pronounceAudioBtn.addEventListener('click', handlePronounceAudio);
+
+            // 4. Modal Activation Listeners
+            achuluBtn.addEventListener('click', () => openSelectorModal('achulu'));
+            halluluBtn.addEventListener('click', () => openSelectorModal('hallulu'));
+            closeModalBtn.addEventListener('click', closeSelectorModal);
+
+            // Allow closing by clicking on the dark modal background
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeSelectorModal();
+                }
+            });
+            
+            // Global resize listener
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        // Initialize the app when the window loads
+        window.onload = init;
+
+    </script>
+</body>
+</html>
