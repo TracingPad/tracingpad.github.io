@@ -4,23 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- START SEO OPTIMIZATION -->
-    <!-- Updated Title: Removed "Multilingual" -->
-    <title>Digital Tracing Pad | Practice Alphabets (Telugu, English, Hindi)</title>
+    <title>Digital Tracing Pad | Practice Alphabets (Hindi, Telugu, English, Tamil)</title>
     
     <!-- NEW FAVICON: Set to use the "✍️" emoji via embedded SVG -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='90%25' style='font-size:80px; text-anchor:middle;'%3E%E2%9C%8D%EF%B8%8F%3C/text%3E%3C/svg%3E">
 
     <!-- Meta Description: A concise summary for search results -->
-    <meta name="description" content="Practice tracing the complete Telugu Aksharamala (Vowels - Achulu and Consonants - Hallulu) on a realistic digital slate. Free and interactive Telugu letter learning tool.">
+    <meta name="description" content="Practice tracing the complete Hindi, Telugu, English, and Tamil Alphabets on a realistic digital slate. Free and interactive learning tool.">
     
     <!-- Keywords (Optional, but helpful) -->
-    <meta name="keywords" content="Telugu alphabet tracing, Telugu Aksharamala, Learn Telugu letters, Telugu writing practice, Achulu, Hallulu, Telugu online slate, free Telugu learning, multilingual tracing, English alphabet, Hindi tracing">
+    <meta name="keywords" content="Hindi alphabet tracing, Telugu alphabet tracing, English alphabet tracing, Tamil alphabet tracing, Hindi Varnamala, Learn letters, multilingual tracing">
     
     <!-- Open Graph Tags for Social Media Sharing - Updated Title -->
-    <meta property="og:title" content="Tracing Pad: Practice Telugu, English, and Hindi Alphabets">
-    <meta property="og:description" content="Practice tracing Telugu vowels and consonants for free on this fun, digital blackboard. Perfect for beginners!">
+    <meta property="og:title" content="Tracing Pad: Practice Hindi, Telugu, English, and Tamil Alphabets">
+    <meta property="og:description" content="Practice tracing Hindi, Telugu, English, and Tamil characters for free on this fun, digital blackboard. Perfect for beginners!">
     <meta property="og:type" content="website">
     <!-- END SEO OPTIMIZATION -->
+    
+    <!-- Google Analytics Gtag Snippet -->
+    <!-- ID: G-8SDCCCH29Q -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8SDCCCH29Q"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-8SDCCCH29Q'); 
+    </script>
 
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -28,68 +38,55 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         
-        /* The BODY now serves as the neutral, screen-filling background, centering the app */
+        /* General body and theme styling */
         body {
             font-family: 'Inter', sans-serif;
-            
-            /* CHANGED: Replaced the flat light gray with a realistic wood gradient */
-            /* This gradient simulates the wood frame's color and texture */
+            /* Realistic wood gradient background */
             background: linear-gradient(180deg, #965b38 0%, #7d4825 50%, #683818 100%);
-            
             padding: 0; 
             margin: 0;
             display: flex; 
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh; /* Adjusted for better vertical centering */
-            /* REMOVED: overflow: hidden; to allow scrolling */
+            min-height: 100vh;
         }
-
-        /* The #app-frame styling is removed as the element is deleted */
         
-        /* Custom style for the canvas container (The Dark Slate Board) */
+        /* Slate Board Container */
         #canvas-container {
-            /* New margins and max-width for the floating slate look */
-            /* UPDATED: Increased width for more tracing space on all screens */
             width: 98vw; 
-            /* MODIFIED: Swapped fixed px max-width to responsive vw value */
             max-width: 92vw; 
-            max-height: 82vh; /* Limits the maximum height on large screens */
+            max-height: 82vh; 
             margin-bottom: 2rem;
-            
-            /* The slate is slightly taller than it is wide to accommodate the header/footer */
             aspect-ratio: 1.2 / 1; 
-            background-color: #2d3a3a; /* Dark Slate Green/Blackboard Color */
-            
+            background-color: #2d3a3a; 
             border: none;
-            /* CHANGED: Increased border radius for a rounder look */
             border-radius: 1.5rem; 
-            
-            /* Changed to an outer shadow to make it float on the page */
-            /* box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); Slightly darker shadow for contrast */
-
             position: relative;
-            /* Added to clip the internal canvas content to the new border radius */
             overflow: hidden;
         }
 
-        /* Style for the tracing letter guide (Chalk-like) */
+        /* Character Guide Text */
         #tracing-guide {
             position: absolute;
-            top: 55%; /* ADJUSTED: Moved from 50% to 55% to shift it down */
+            top: 55%; 
             left: 50%;
-            transform: translate(-50%, -50%); /* Keeps the center-alignment */
-            /* UPDATED: Reduced size for more tracing space */
-            font-size: 30vw; 
+            transform: translate(-50%, -50%); 
+            font-size: 30vw; /* Default size for regional scripts */
             max-width: 90%;
             text-align: center;
             line-height: 1;
             font-weight: 900;
-            color: rgba(255, 255, 255, 0.1); /* Very faint white/chalk guide */
+            color: rgba(255, 255, 255, 0.1); 
             user-select: none;
             pointer-events: none;
         }
+        
+        /* Adjust guide font size for English (A-Z) to prevent overflow */
+        .lang-english #tracing-guide {
+             font-size: 25vw; 
+        }
+
         /* Ensure canvas fills the container */
         #tracingCanvas {
             width: 100%;
@@ -106,7 +103,6 @@
                 <h3 id="modal-title" class="text-2xl font-bold text-gray-800">Select Character</h3>
                 <button id="closeModalBtn" class="text-gray-500 hover:text-gray-800 text-3xl font-light leading-none">&times;</button>
             </div>
-            <!-- Max height is applied here so the internal grid scrolls, but not the whole page -->
             <div id="character-grid" class="grid grid-cols-6 sm:grid-cols-8 gap-3 max-h-[70vh] overflow-y-auto p-2">
                 <!-- Characters will be dynamically inserted here -->
             </div>
@@ -114,12 +110,13 @@
         </div>
     </div>
     
-    <!-- Main Title & Action Links Container -->
+    <!-- Top Bar: Title and External Links -->
     <div class="w-full max-w-[92vw] mx-auto mb-4 px-4 flex justify-center items-center relative"> 
         
-        <!-- NEW: Suggestions Link (Positioned absolutely to the left) -->
+        <!-- Suggestions Link (Left) -->
         <a 
-            href="https://github.com/skgandikota/tracing-pad/issues" 
+            href="#" 
+            id="suggestionsLink"
             target="_blank" 
             class="absolute left-4 inline-flex items-center space-x-2 px-3 py-1 text-sm bg-indigo-200 text-gray-800 font-bold rounded-full shadow-lg hover:bg-indigo-100 transition transform hover:scale-105" 
             title="Suggest Features or Report Bugs"
@@ -127,42 +124,44 @@
             <span>Suggestions 💡</span>
         </a>
 
-        <!-- Main Title (Non-interactive text) - Centered - Removed "Multilingual" -->
+        <!-- Main Title (Centered) -->
         <h1 class="text-2xl sm:text-3xl font-extrabold text-white/90 drop-shadow-lg user-select-none pointer-events-none">Tracing Pad</h1> 
         
-        <!-- Buy Me A Coffee Link (Positioned absolutely to the right) -->
-        <a href="https://www.buymeacoffee.com/saigandikota" target="_blank" class="absolute right-4 inline-flex items-center space-x-2 px-3 py-1 text-sm bg-yellow-400 text-gray-900 font-bold rounded-full shadow-lg hover:bg-yellow-300 transition transform hover:scale-105">
+        <!-- Buy Me A Coffee Link (Right) -->
+        <a href="https://www.buymeacoffee.com/saigandikota" 
+            id="buyMeACoffeeLink"
+            target="_blank" 
+            class="absolute right-4 inline-flex items-center space-x-2 px-3 py-1 text-sm bg-yellow-400 text-gray-900 font-bold rounded-full shadow-lg hover:bg-yellow-300 transition transform hover:scale-105">
             <span>Buy me a Coffee ☕</span>
         </a>
     </div>
 
-    <!-- Canvas Area (The Slate - now a direct child of body) -->
+    <!-- Language Selector Buttons -->
+    <div class="flex justify-center space-x-2 mb-4">
+        <button id="langTeluguBtn" data-lang="Telugu" class="lang-btn px-4 py-2 text-sm font-semibold rounded-full shadow-md transition">Telugu</button>
+        <button id="langHindiBtn" data-lang="Hindi" class="lang-btn px-4 py-2 text-sm font-semibold rounded-full shadow-md transition">Hindi</button>
+        <button id="langEnglishBtn" data-lang="English" class="lang-btn px-4 py-2 text-sm font-semibold rounded-full shadow-md transition">English</button>
+        <button id="langTamilBtn" data-lang="Tamil" class="lang-btn px-4 py-2 text-sm font-semibold rounded-full shadow-md transition">Tamil</button>
+    </div>
+
+    <!-- Canvas Area (The Slate) -->
     <div id="canvas-container">
         
         <!-- Header Content (Subtitle and Category Buttons) -->
-        <!-- UPDATED: Increased pt-5 to push content down slightly -->
         <div id="slate-header-content" class="absolute top-0 left-1/2 transform -translate-x-1/2 text-center text-white/90 w-full z-20 px-8 pt-5 pb-3">
             
-            <!-- Static text (non-interactive) - Subtitle -->
+            <!-- Dynamic Subtitle -->
             <div class="user-select-none pointer-events-none mb-3">
-                <p class="text-base sm:text-lg font-medium opacity-80">Practice Telugu Alphabet (అక్షరమాల)</p>
+                <p id="subtitle-text" class="text-base sm:text-lg font-medium opacity-80"></p>
             </div>
             
-            <!-- Category buttons (Clickable) -->
-            <div class="flex justify-center space-x-3 mb-3">
-                <button id="achuluBtn" class="px-3 py-1 text-sm bg-indigo-600 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 transition">
-                    అచ్చులు - Achulu
-                </button>
-                <button id="halluluBtn" class="px-3 py-1 text-sm bg-indigo-600 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 transition">
-                    హల్లులు - Hallulu
-                </button>
+            <!-- Dynamic Category buttons container -->
+            <div id="category-buttons-container" class="flex justify-center space-x-3 mb-3">
+                <!-- Buttons populated dynamically -->
             </div>
-
-            <!-- Pronunciation Text REMOVED FROM HERE -->
         </div>
         
         <!-- Clear Button -->
-        <!-- UPDATED: Moved the button down from top-4 to top-6 and right from right-4 to right-6 -->
         <button id="clearBtn" class="absolute top-6 right-6 p-2 bg-red-600 text-white rounded-full shadow-xl hover:bg-red-700 transition z-30" title="Clear Slate (Reset)">
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw">
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-3.26 1.17l-1.39 1.18"/>
@@ -178,202 +177,356 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </button>
         
-        <!-- Faint Telugu character guide -->
+        <!-- Faint character guide -->
         <div id="tracing-guide"></div>
 
-        <!-- Pronunciation Audio Button and Text Container -->
+        <!-- Pronunciation Text Container -->
         <div id="pronunciation-container" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex items-center space-x-2">
-            
-            <!-- Pronunciation Text -->
             <div id="pronunciation-text" class="text-sm sm:text-lg font-medium text-white/80 user-select-none pointer-events-none whitespace-nowrap">
-                Pronunciation: a (as in am)
+                Pronunciation: 
             </div>
-
-            <!--  work in progress : 
-            <button id="pronounceAudioBtn" class="text-white/80 hover:text-white transition p-1 rounded-full hover:bg-white/10" title="Listen to Pronunciation">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-white/90">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                </svg>
-            </button>
-            -->
         </div>
 
         <canvas id="tracingCanvas"></canvas>
     </div>
-    
-    <!-- OLD Buy Me A Coffee Link (Footer) REMOVED -->
 
     <script>
+        // --- Cookie Utility Functions for Language Persistence ---
+        
+        /**
+         * Sets a cookie with a name, value, and expiration in days.
+         * @param {string} name - The name of the cookie.
+         * @param {string} value - The value to store.
+         * @param {number} days - Number of days until the cookie expires.
+         */
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+
+        /**
+         * Gets the value of a cookie by name.
+         * @param {string} name - The name of the cookie.
+         * @returns {string | null} The cookie value or null if not found.
+         */
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // Helper function to send custom events to GA
+        function trackEvent(eventName, eventParams = {}) {
+            try {
+                if (typeof gtag === 'function') {
+                    gtag('event', eventName, eventParams);
+                }
+            } catch (e) {
+                console.error("Error tracking GA event:", e);
+            }
+        }
+
         // --- Configuration and State ---
-        // Dark slate color used for the canvas background, needed for the reset.
         const SLATE_BACKGROUND_COLOR = '#2d3a3a'; 
-        
-        // --- FIXED SETTINGS (Simulating values from a hidden Settings Page) ---
-        // Chalk Color: Fixed to white
         const DEFAULT_CHALK_COLOR = '#ffffff'; 
-        // Chalk Thickness: Fixed to 20px
         let currentBrushSize = 20; 
-        // -------------------------------------------------------------------
-
-        const TELUGU_VOWELS = [
-            { char: 'అ', pron: 'a (as in am)' },
-            { char: 'ఆ', pron: 'aa (as in arm)' },
-            { char: 'ఇ', pron: 'i (as in it)' },
-            { char: 'ఈ', pron: 'ee (as in eat)' },
-            { char: 'ఉ', pron: 'u (as in put)' },
-            { char: 'ఊ', pron: 'oo (as in shoot)' },
-            { char: 'ఋ', pron: 'ru (vocalic r, as in ripple)' },
-            { char: 'ౠ', pron: 'ruu (long vocalic r)' },
-            { char: 'ఎ', pron: 'e (as in hen)' },
-            { char: 'ఏ', pron: 'E (as in hail)' },
-            { char: 'ఐ', pron: 'ai (as in aisle)' },
-            { char: 'ఒ', pron: 'o (as in open)' },
-            { char: 'ఓ', pron: 'O (as in boat)' },
-            { char: 'ఔ', pron: 'au (as in owl)' },
-            { char: 'అం', pron: 'am (Anuswara)' },
-            { char: 'అః', pron: 'aha (Visarga)' },
-        ];
-
-        const TELUGU_CONSONANTS = [
-            { char: 'క', pron: 'ka (as in kite)' },
-            { char: 'ఖ', pron: 'kha (aspirated k)' },
-            { char: 'గ', pron: 'ga (as in gate)' },
-            { char: 'ఘ', pron: 'gha (aspirated g)' },
-            { char: 'ఙ', pron: 'nga (as in sing)' },
-            { char: 'చ', pron: 'cha (as in chair)' },
-            { char: 'ఛ', pron: 'chha (aspirated ch)' },
-            { char: 'జ', pron: 'ja (as in joy)' },
-            { char: 'ఝ', pron: 'jha (aspirated j)' },
-            { char: 'ఞ', pron: 'nya (as in canyon)' },
-            { char: 'ట', pron: 'ta (retroflex t)' },
-            { char: 'ఠ', pron: 'tha (aspirated retroflex t)' },
-            { char: 'డ', pron: 'da (retroflex d)' },
-            { char: 'ఢ', pron: 'dha (aspirated retroflex d)' },
-            { char: 'ణ', pron: 'na (retroflex n)' },
-            { char: 'త', pron: 'tha (dental t)' },
-            { char: 'థ', pron: 'thha (aspirated dental t)' },
-            { char: 'ద', pron: 'dha (dental d)' },
-            { char: 'ధ', pron: 'dhha (aspirated dental d)' },
-            { char: 'న', pron: 'na (dental n)' },
-            { char: 'ప', pron: 'pa (as in pot)' },
-            { char: 'ఫ', pron: 'pha (aspirated p)' },
-            { char: 'బ', pron: 'ba (as in bat)' },
-            { char: 'భ', pron: 'bha (aspirated b)' },
-            { char: 'మ', pron: 'ma (as in mat)' },
-            { char: 'య', pron: 'ya (as in yes)' },
-            { char: 'ర', pron: 'ra (soft r)' },
-            { char: 'ల', pron: 'la (as in lip)' },
-            { char: 'వ', pron: 'va (as in van)' },
-            { char: 'శ', pron: 'sha (palatal s)' },
-            { char: 'ష', pron: 'Sha (retroflex s)' },
-            { char: 'స', pron: 'sa (as in sun)' },
-            { char: 'హ', pron: 'ha (as in hat)' },
-            { char: 'ళ', pron: 'la (retroflex l)' },
-            { char: 'క్ష', pron: 'ksha (ks+h)' },
-            { char: 'ఱ', pron: 'ra (trilled r)' },
-        ];
         
-        // Combine both sets into the main character list
-        const TELUGU_CHARACTERS = [
-            ...TELUGU_VOWELS,
-            ...TELUGU_CONSONANTS
-        ];
-
+        // Default is English, but will be overwritten by cookie if present
+        let currentLanguage = 'English'; 
         let currentCharacterIndex = 0;
         let isDrawing = false;
-        let currentBrushColor = DEFAULT_CHALK_COLOR; 
+        
+        // --- Character Data Definitions ---
+        
+        // 1. Telugu Data
+        const TELUGU_VOWELS = [
+            { char: 'అ', pron: 'a (as in am)', category: 'achulu' }, { char: 'ఆ', pron: 'aa (as in arm)', category: 'achulu' },
+            { char: 'ఇ', pron: 'i (as in it)', category: 'achulu' }, { char: 'ఈ', pron: 'ee (as in eat)', category: 'achulu' },
+            { char: 'ఉ', pron: 'u (as in put)', category: 'achulu' }, { char: 'ఊ', pron: 'oo (as in shoot)', category: 'achulu' },
+            { char: 'ఋ', pron: 'ru (vocalic r)', category: 'achulu' }, { char: 'ౠ', pron: 'ruu (long vocalic r)', category: 'achulu' },
+            { char: 'ఎ', pron: 'e (as in hen)', category: 'achulu' }, { char: 'ఏ', pron: 'E (as in hail)', category: 'achulu' },
+            { char: 'ఐ', pron: 'ai (as in aisle)', category: 'achulu' }, { char: 'ఒ', pron: 'o (as in open)', category: 'achulu' },
+            { char: 'ఓ', pron: 'O (as in boat)', category: 'achulu' }, { char: 'ఔ', pron: 'au (as in owl)', category: 'achulu' },
+            { char: 'అం', pron: 'am (Anuswara)', category: 'achulu' }, { char: 'అః', pron: 'aha (Visarga)', category: 'achulu' },
+        ];
+        const TELUGU_CONSONANTS = [
+            { char: 'క', pron: 'ka (as in kite)', category: 'hallulu' }, { char: 'ఖ', pron: 'kha (aspirated k)', category: 'hallulu' },
+            { char: 'గ', pron: 'ga (as in gate)', category: 'hallulu' }, { char: 'ఘ', pron: 'gha (aspirated g)', category: 'hallulu' },
+            { char: 'ఙ', pron: 'nga (as in sing)', category: 'hallulu' }, { char: 'చ', pron: 'cha (as in chair)', category: 'hallulu' },
+            { char: 'ఛ', pron: 'chha (aspirated ch)', category: 'hallulu' }, { char: 'జ', pron: 'ja (as in joy)', category: 'hallulu' },
+            { char: 'ఝ', pron: 'jha (aspirated j)', category: 'hallulu' }, { char: 'ఞ', pron: 'nya (as in canyon)', category: 'hallulu' },
+            { char: 'ట', pron: 'ta (retroflex t)', category: 'hallulu' }, { char: 'ఠ', pron: 'tha (aspirated retroflex t)', category: 'hallulu' },
+            { char: 'డ', pron: 'da (retroflex d)', category: 'hallulu' }, { char: 'ఢ', pron: 'dha (aspirated retroflex d)', category: 'hallulu' },
+            { char: 'ణ', pron: 'na (retroflex n)', category: 'hallulu' }, { char: 'త', pron: 'tha (dental t)', category: 'hallulu' },
+            { char: 'థ', pron: 'thha (aspirated dental t)', category: 'hallulu' }, { char: 'ద', pron: 'dha (dental d)', category: 'hallulu' },
+            { char: 'ధ', pron: 'dhha (aspirated dental d)', category: 'hallulu' }, { char: 'న', pron: 'na (dental n)', category: 'hallulu' },
+            { char: 'ప', pron: 'pa (as in pot)', category: 'hallulu' }, { char: 'ఫ', pron: 'pha (aspirated p)', category: 'hallulu' },
+            { char: 'బ', pron: 'ba (as in bat)', category: 'hallulu' }, { char: 'భ', pron: 'bha (aspirated b)', category: 'hallulu' },
+            { char: 'మ', pron: 'ma (as in mat)', category: 'hallulu' }, { char: 'య', pron: 'ya (as in yes)', category: 'hallulu' },
+            { char: 'ర', pron: 'ra (soft r)', category: 'hallulu' }, { char: 'ల', pron: 'la (as in lip)', category: 'hallulu' },
+            { char: 'వ', pron: 'va (as in van)', category: 'hallulu' }, { char: 'శ', pron: 'sha (palatal s)', category: 'hallulu' },
+            { char: 'ష', pron: 'Sha (retroflex s)', category: 'hallulu' }, { char: 'స', pron: 'sa (as in sun)', category: 'hallulu' },
+            { char: 'హ', pron: 'ha (as in hat)', category: 'hallulu' }, { char: 'ళ', pron: 'la (retroflex l)', category: 'hallulu' },
+            { char: 'క్ష', pron: 'ksha (ks+h)', category: 'hallulu' }, { char: 'ఱ', pron: 'ra (trilled r)', category: 'hallulu' },
+        ];
+        const TELUGU_CHARACTERS = [...TELUGU_VOWELS, ...TELUGU_CONSONANTS];
+
+        // 2. English Data
+        const ENGLISH_UPPERCASE = Array.from({ length: 26 }, (_, i) => {
+            const char = String.fromCharCode(65 + i);
+            return { char, pron: `${char}`, category: 'uppercase' };
+        });
+        const ENGLISH_LOWERCASE = Array.from({ length: 26 }, (_, i) => {
+            const char = String.fromCharCode(97 + i);
+            return { char, pron: char, category: 'lowercase' };
+        });
+        const ENGLISH_CHARACTERS = [...ENGLISH_UPPERCASE, ...ENGLISH_LOWERCASE];
+        
+        // 3. Tamil Data
+        const TAMIL_VOWELS = [
+            { char: 'அ', pron: 'a (as in fun)', category: 'uyir' }, { char: 'ஆ', pron: 'aa (as in father)', category: 'uyir' },
+            { char: 'இ', pron: 'i (as in in)', category: 'uyir' }, { char: 'ஈ', pron: 'ee (as in feet)', category: 'uyir' },
+            { char: 'உ', pron: 'u (as in put)', category: 'uyir' }, { char: 'ஊ', pron: 'oo (as in boot)', category: 'uyir' },
+            { char: 'எ', pron: 'e (as in pet)', category: 'uyir' }, { char: 'ஏ', pron: 'E (as in day)', category: 'uyir' },
+            { char: 'ஐ', pron: 'ai (as in eye)', category: 'uyir' }, { char: 'ஒ', pron: 'o (as in orb)', category: 'uyir' },
+            { char: 'ஓ', pron: 'O (as in boat)', category: 'uyir' }, { char: 'ஔ', pron: 'au (as in cow)', category: 'uyir' },
+        ];
+        const TAMIL_CONSONANTS = [
+            { char: 'க்', pron: 'ik (hard k)', category: 'mei' }, { char: 'ங்', pron: 'ing (as in sing)', category: 'mei' },
+            { char: 'ச்', pron: 'ich (soft ch)', category: 'mei' }, { char: 'ஞ்', pron: 'inj (as in canyon)', category: 'mei' },
+            { char: 'ட்', pron: 'it (retroflex t)', category: 'mei' }, { char: 'ண்', pron: 'in (retroflex n)', category: 'mei' },
+            { char: 'த்', pron: 'ith (dental t)', category: 'mei' }, { char: 'ந்', pron: 'inth (dental n)', category: 'mei' },
+            { char: 'ப்', pron: 'ip (as in pen)', category: 'mei' }, { char: 'ம்', pron: 'im (as in man)', category: 'mei' },
+            { char: 'ய்', pron: 'iy (as in yes)', category: 'mei' }, { char: 'ர்', pron: 'ir (trilled r)', category: 'mei' },
+            { char: 'ல்', pron: 'il (light l)', category: 'mei' }, { char: 'வ்', pron: 'iv (as in van)', category: 'mei' },
+            { char: 'ழ்', pron: 'izh (retroflex l)', category: 'mei' }, { char: 'ள்', pron: 'il (retroflex l)', category: 'mei' },
+            { char: 'ற்', pron: 'irr (trilled rr)', category: 'mei' }, { char: 'ன்', pron: 'inn (dental n)', category: 'mei' },
+        ];
+        const TAMIL_CHARACTERS = [...TAMIL_VOWELS, ...TAMIL_CONSONANTS];
+
+        // 4. Hindi Data (New!)
+        const HINDI_VOWELS = [
+            { char: 'अ', pron: 'a (as in but)', category: 'swar' }, { char: 'आ', pron: 'aa (as in car)', category: 'swar' },
+            { char: 'इ', pron: 'i (as in pin)', category: 'swar' }, { char: 'ई', pron: 'ee (as in beet)', category: 'swar' },
+            { char: 'उ', pron: 'u (as in put)', category: 'swar' }, { char: 'ऊ', pron: 'oo (as in boot)', category: 'swar' },
+            { char: 'ऋ', pron: 'ri (vocalic r)', category: 'swar' }, 
+            { char: 'ए', pron: 'e (as in bait)', category: 'swar' }, { char: 'ऐ', pron: 'ai (as in side)', category: 'swar' },
+            { char: 'ओ', pron: 'o (as in boat)', category: 'swar' }, { char: 'औ', pron: 'au (as in loud)', category: 'swar' },
+            { char: 'अं', pron: 'am (Anuswar)', category: 'swar' }, { char: 'अः', pron: 'ah (Visarg)', category: 'swar' },
+        ];
+        const HINDI_CONSONANTS = [
+            { char: 'क', pron: 'ka (unvoiced, unaspirated)', category: 'vyanjan' }, { char: 'ख', pron: 'kha (unvoiced, aspirated)', category: 'vyanjan' },
+            { char: 'ग', pron: 'ga (voiced, unaspirated)', category: 'vyanjan' }, { char: 'घ', pron: 'gha (voiced, aspirated)', category: 'vyanjan' },
+            { char: 'ङ', pron: 'nga (velar nasal)', category: 'vyanjan' }, { char: 'च', pron: 'cha (unvoiced, unaspirated)', category: 'vyanjan' },
+            { char: 'छ', pron: 'chha (unvoiced, aspirated)', category: 'vyanjan' }, { char: 'ज', pron: 'ja (voiced, unaspirated)', category: 'vyanjan' },
+            { char: 'झ', pron: 'jha (voiced, aspirated)', category: 'vyanjan' }, { char: 'ञ', pron: 'nya (palatal nasal)', category: 'vyanjan' },
+            { char: 'ट', pron: 'ta (retroflex, unaspirated)', category: 'vyanjan' }, { char: 'ठ', pron: 'tha (retroflex, aspirated)', category: 'vyanjan' },
+            { char: 'ड', pron: 'da (retroflex, unaspirated)', category: 'vyanjan' }, { char: 'ढ', pron: 'dha (retroflex, aspirated)', category: 'vyanjan' },
+            { char: 'ण', pron: 'na (retroflex nasal)', category: 'vyanjan' }, { char: 'त', pron: 'ta (dental, unaspirated)', category: 'vyanjan' },
+            { char: 'थ', pron: 'tha (dental, aspirated)', category: 'vyanjan' }, { char: 'द', pron: 'da (dental, unaspirated)', category: 'vyanjan' },
+            { char: 'ध', pron: 'dha (dental, aspirated)', category: 'vyanjan' }, { char: 'न', pron: 'na (dental nasal)', category: 'vyanjan' },
+            { char: 'प', pron: 'pa (as in pin)', category: 'vyanjan' }, { char: 'फ', pron: 'pha (aspirated p)', category: 'vyanjan' },
+            { char: 'ब', pron: 'ba (as in bat)', category: 'vyanjan' }, { char: 'भ', pron: 'bha (aspirated b)', category: 'vyanjan' },
+            { char: 'म', pron: 'ma (as in man)', category: 'vyanjan' }, { char: 'य', pron: 'ya (as in yes)', category: 'vyanjan' },
+            { char: 'र', pron: 'ra (as in run)', category: 'vyanjan' }, { char: 'ल', pron: 'la (as in lap)', category: 'vyanjan' },
+            { char: 'व', pron: 'va/wa (as in van)', category: 'vyanjan' }, { char: 'श', pron: 'sha (palatal s)', category: 'vyanjan' },
+            { char: 'ष', pron: 'sha (retroflex s)', category: 'vyanjan' }, { char: 'स', pron: 'sa (as in sun)', category: 'vyanjan' },
+            { char: 'ह', pron: 'ha (as in hat)', category: 'vyanjan' },
+            { char: 'क्ष', pron: 'ksha (compound)', category: 'vyanjan' }, { char: 'त्र', pron: 'tra (compound)', category: 'vyanjan' },
+            { char: 'ज्ञ', pron: 'gya (compound)', category: 'vyanjan' },
+        ];
+        const HINDI_CHARACTERS = [...HINDI_VOWELS, ...HINDI_CONSONANTS];
+        
+        // 5. Language Configuration Map (Updated)
+        const LANGUAGES = {
+            Telugu: {
+                subtitle: "Practice Telugu Alphabet (అక్షరమాల)",
+                characters: TELUGU_CHARACTERS,
+                categories: [
+                    { id: 'achulu', label: 'అచ్చులు - Achulu', chars: TELUGU_VOWELS },
+                    { id: 'hallulu', label: 'హల్లులు - Hallulu', chars: TELUGU_CONSONANTS }
+                ]
+            },
+            Hindi: {
+                subtitle: "Practice Hindi Alphabet (वर्णमाला - Varnamala)",
+                characters: HINDI_CHARACTERS,
+                categories: [
+                    { id: 'swar', label: 'स्वर - Swar (Vowels)', chars: HINDI_VOWELS },
+                    { id: 'vyanjan', label: 'व्यंजन - Vyanjan (Consonants)', chars: HINDI_CONSONANTS }
+                ]
+            },
+            English: {
+                subtitle: "Practice English Alphabet (A-Z, a-z)",
+                characters: ENGLISH_CHARACTERS,
+                categories: [
+                    { id: 'uppercase', label: 'Uppercase (A-Z)', chars: ENGLISH_UPPERCASE },
+                    { id: 'lowercase', label: 'Lowercase (a-z)', chars: ENGLISH_LOWERCASE }
+                ]
+            },
+            Tamil: { 
+                subtitle: "Practice Tamil Alphabet (தமிழ் எழுத்துக்கள்)",
+                characters: TAMIL_CHARACTERS,
+                categories: [
+                    { id: 'uyir', label: 'உயிர் - Uyir Ezhuthu (Vowels)', chars: TAMIL_VOWELS },
+                    { id: 'mei', label: 'மெய் - Mei Ezhuthu (Consonants)', chars: TAMIL_CONSONANTS }
+                ]
+            }
+        };
 
         // --- DOM Elements ---
         const canvas = document.getElementById('tracingCanvas');
         const ctx = canvas.getContext('2d');
         const guideDiv = document.getElementById('tracing-guide');
-        // Renamed to target the new element holding the text
         const pronunciationTextDisplay = document.getElementById('pronunciation-text'); 
+        const subtitleText = document.getElementById('subtitle-text');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const clearBtn = document.getElementById('clearBtn'); 
         const canvasContainer = document.getElementById('canvas-container');
-        const pronounceAudioBtn = document.getElementById('pronounceAudioBtn');
+        const categoryButtonsContainer = document.getElementById('category-buttons-container');
         
         // Modal Elements
         const modal = document.getElementById('character-selector-modal');
         const modalTitle = document.getElementById('modal-title');
         const charGrid = document.getElementById('character-grid');
         const closeModalBtn = document.getElementById('closeModalBtn');
-        const achuluBtn = document.getElementById('achuluBtn');
-        const halluluBtn = document.getElementById('halluluBtn');
+        
+        // Language Buttons
+        const langBtns = document.querySelectorAll('.lang-btn');
+        const body = document.body;
 
-        // --- Core Canvas Functions ---
 
-        /**
-         * Resizes the canvas to fill its container while maintaining a square aspect ratio
-         * and redrawing the tracing guide.
-         */
-        function resizeCanvas() {
-            // Use clientWidth to determine the size of the square slate
-            const containerSize = canvasContainer.clientWidth; 
-            canvas.width = containerSize;
-            canvas.height = canvasContainer.clientHeight; // Use container height
-            
-            // Reapply drawing settings
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            // Re-render the guide text
-            updateCharacterDisplay();
-        }
+        // --- Core Application Logic ---
 
         /**
          * Clears the canvas entirely (the "Reset" function).
          */
         function clearCanvas() {
-            // Draw a rectangle with the slate color to simulate clearing the canvas
             ctx.fillStyle = SLATE_BACKGROUND_COLOR;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Track the clear action
+            const currentChar = LANGUAGES[currentLanguage].characters[currentCharacterIndex];
+            trackEvent('slate_cleared', {
+                language: currentLanguage.toLowerCase(),
+                character: currentChar.char,
+                category: currentChar.category
+            });
         }
 
         /**
-         * Updates the displayed Telugu character and the guide text.
+         * Updates the displayed character, subtitle, and navigation buttons.
          */
         function updateCharacterDisplay() {
-            // Now uses the combined TELUGU_CHARACTERS array
-            const charData = TELUGU_CHARACTERS[currentCharacterIndex];
-            pronunciationTextDisplay.textContent = `Pronunciation: ${charData.pron}`;
+            const charList = LANGUAGES[currentLanguage].characters;
+            const charData = charList[currentCharacterIndex];
+            
+            // Update guide text and pronunciation
             guideDiv.textContent = charData.char;
+            pronunciationTextDisplay.textContent = `Pronunciation: ${charData.pron}`;
+            subtitleText.textContent = LANGUAGES[currentLanguage].subtitle;
             
             // Update button states
             prevBtn.disabled = currentCharacterIndex === 0;
-            // Uses the combined array length for the maximum index
-            nextBtn.disabled = currentCharacterIndex === TELUGU_CHARACTERS.length - 1;
+            nextBtn.disabled = currentCharacterIndex === charList.length - 1;
+        }
+        
+        /**
+         * Switches the active language, updates state, and saves the selection to a cookie.
+         * @param {string} lang - 'Telugu', 'English', 'Tamil', or 'Hindi'.
+         */
+        function switchLanguage(lang) {
+            // Only switch if the language is valid and different
+            if (!LANGUAGES[lang] || currentLanguage === lang) return;
+
+            currentLanguage = lang;
+            currentCharacterIndex = 0; // Reset index to the start of the new language set
+            
+            // Save the new language selection to a cookie for 365 days
+            setCookie('tracingPadLang', lang, 365);
+
+            // Update language selector button styles and body class
+            langBtns.forEach(btn => {
+                const isActive = btn.dataset.lang === lang;
+                
+                // Toggle active class on button
+                if (isActive) {
+                    btn.className = 'lang-btn px-4 py-2 text-sm font-semibold rounded-full shadow-md transition bg-blue-600 text-white';
+                } else {
+                    btn.className = 'lang-btn px-4 py-2 text-sm font-semibold rounded-full shadow-md transition bg-gray-200 text-gray-800 hover:bg-gray-300';
+                }
+            });
+            
+            // Fix: Directly control the body class for the English styling variant
+            body.classList.remove('lang-english');
+            if (lang === 'English') {
+                body.classList.add('lang-english');
+            }
+
+
+            // Update UI
+            updateCategoryButtons(); // Renders the category buttons for the selected language
+            clearCanvas();
+            updateCharacterDisplay();
+
+            trackEvent('language_switch', {
+                new_language: lang.toLowerCase()
+            });
         }
 
         /**
-         * Sets the drawing style (chalk color and fixed thickness).
+         * Dynamically creates the category buttons based on the current language.
          */
+        function updateCategoryButtons() {
+            categoryButtonsContainer.innerHTML = '';
+            const categories = LANGUAGES[currentLanguage].categories;
+
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'px-3 py-1 text-sm bg-indigo-600 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 transition whitespace-nowrap';
+                button.textContent = category.label;
+                button.dataset.categoryId = category.id;
+
+                button.addEventListener('click', () => {
+                    openSelectorModal(category.id);
+                });
+                categoryButtonsContainer.appendChild(button);
+            });
+        }
+
+        // --- Drawing and Canvas Helpers ---
+        
         function setDrawingStyle() {
-            ctx.strokeStyle = currentBrushColor;
+            ctx.strokeStyle = DEFAULT_CHALK_COLOR; // Use fixed chalk color
             ctx.lineWidth = currentBrushSize;
         }
 
-        // --- Drawing Handlers (Mouse/Touch) ---
+        function resizeCanvas() {
+            const containerSize = canvasContainer.clientWidth; 
+            canvas.width = containerSize;
+            canvas.height = canvasContainer.clientHeight;
+            
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            clearCanvas(); 
+            // Note: updateCharacterDisplay() is not strictly needed here as it will be called by init/switchLanguage
+        }
 
-        /**
-         * Gets the position of the pointer (mouse or touch) relative to the canvas.
-         * @param {Event} event - The mouse or touch event.
-         * @returns {object} {x, y} coordinates.
-         */
         function getPos(event) {
             const rect = canvas.getBoundingClientRect();
             let clientX, clientY;
             
             if (event.touches && event.touches.length > 0) {
-                // Handle touch events
                 clientX = event.touches[0].clientX;
                 clientY = event.touches[0].clientY;
             } else {
-                // Handle mouse events
                 clientX = event.clientX;
                 clientY = event.clientY;
             }
@@ -390,18 +543,15 @@
             const { x, y } = getPos(event);
             ctx.beginPath();
             ctx.moveTo(x, y);
-            setDrawingStyle(); // Apply brush settings on start
+            setDrawingStyle(); 
         }
 
         function draw(event) {
             event.preventDefault();
-            // Drawing logic only runs if isDrawing is true
             if (!isDrawing) return;
 
             const { x, y } = getPos(event);
             
-            // FIX: Explicitly check if the position is outside the canvas boundaries.
-            // If it is, stop drawing immediately to prevent 'chalk leakage'.
             if (x < 0 || x > canvas.width || y < 0 || y > canvas.height) {
                 stopDrawing(); 
                 return;
@@ -409,7 +559,7 @@
 
             ctx.lineTo(x, y);
             ctx.stroke();
-            ctx.beginPath(); // Start a new path segment for smoother lines
+            ctx.beginPath(); 
             ctx.moveTo(x, y);
         }
 
@@ -418,53 +568,33 @@
             ctx.closePath();
         }
 
-        // --- Audio Functions (Simulated) ---
-
-        /**
-         * Simulates an audio request for the current character.
-         */
-        function handlePronounceAudio() {
-            // This function would typically call the Gemini TTS API 
-            // to generate and play the audio for the current character.
-            const currentCharacter = TELUGU_CHARACTERS[currentCharacterIndex].char;
-            console.log(`Simulating audio request for character: ${currentCharacter}`);
-            
-            // Simple visual feedback
-            const icon = pronounceAudioBtn.querySelector('svg');
-            icon.classList.add('animate-pulse');
-            setTimeout(() => {
-                icon.classList.remove('animate-pulse');
-            }, 500);
-        }
-
         // --- Modal Functions ---
         
         /**
-         * Finds the index of a character in the combined TELUGU_CHARACTERS array.
+         * Finds the index of a character in the current active character list.
          */
         function getCharacterIndex(char) {
-            return TELUGU_CHARACTERS.findIndex(data => data.char === char);
+            return LANGUAGES[currentLanguage].characters.findIndex(data => data.char === char);
         }
 
         /**
-         * Opens the character selector modal and populates the grid.
-         * @param {string} type - 'achulu' or 'hallulu'
+         * Opens the character selector modal and populates the grid for the specified category.
          */
-        function openSelectorModal(type) {
-            let characters;
-            if (type === 'achulu') {
-                characters = TELUGU_VOWELS;
-                modalTitle.textContent = 'Select Vowel (అచ్చులు)';
-            } else {
-                characters = TELUGU_CONSONANTS;
-                modalTitle.textContent = 'Select Consonant (హల్లులు)';
-            }
+        function openSelectorModal(categoryId) {
+            const categoryData = LANGUAGES[currentLanguage].categories.find(cat => cat.id === categoryId);
+            if (!categoryData) return;
+
+            modalTitle.textContent = categoryData.label;
+            
+            trackEvent('category_open', {
+                language: currentLanguage.toLowerCase(),
+                category: categoryId
+            });
 
             // Populate the grid
             charGrid.innerHTML = '';
-            characters.forEach(data => {
+            categoryData.chars.forEach(data => {
                 const button = document.createElement('button');
-                // Use larger size for readability in the modal
                 button.className = 'char-button text-3xl sm:text-4xl font-bold p-2 rounded-lg bg-gray-100 hover:bg-yellow-100 transition shadow-md'; 
                 button.textContent = data.char;
                 button.dataset.char = data.char;
@@ -476,6 +606,13 @@
                         clearCanvas();
                         updateCharacterDisplay();
                         closeSelectorModal();
+                        
+                        // Track character selection from modal
+                        trackEvent('character_select', {
+                            language: currentLanguage.toLowerCase(),
+                            character: data.char,
+                            category: categoryData.id
+                        });
                     }
                 });
                 charGrid.appendChild(button);
@@ -491,65 +628,91 @@
             modal.classList.add('hidden');
         }
 
-        // --- Event Listeners and Initialization ---
+        // --- Initialization ---
 
         function init() {
-            // Initial setup and clear the canvas to the slate color
-            resizeCanvas();
-            clearCanvas(); 
-            updateCharacterDisplay();
-            setDrawingStyle(); // Set initial color and size
+            // 1. Initial Canvas Resize and Setup (Called first to ensure dimensions are ready)
+            resizeCanvas(); 
 
-            // 1. Canvas Drawing Listeners
+            // 2. Check for stored language in cookie and set initial language
+            const storedLang = getCookie('tracingPadLang');
+            const initialLang = (storedLang && LANGUAGES[storedLang]) ? storedLang : 'English';
+
+            // 3. Set the determined initial language (this updates UI/buttons/character)
+            // We use a non-existent language 'Initial' just to force the first run of switchLanguage, 
+            // since we don't want to skip it if initialLang is 'English'.
+            currentLanguage = 'Initial'; 
+            switchLanguage(initialLang); 
+
+            // 4. Canvas Drawing Listeners
             canvas.addEventListener('mousedown', startDrawing);
             canvas.addEventListener('touchstart', startDrawing, { passive: false });
-
             canvas.addEventListener('mousemove', draw);
             canvas.addEventListener('touchmove', draw, { passive: false });
-
             canvas.addEventListener('mouseout', stopDrawing);
-
             window.addEventListener('mouseup', stopDrawing); 
             window.addEventListener('touchend', stopDrawing); 
             window.addEventListener('touchcancel', stopDrawing); 
 
-            // 2. Navigation Listeners
+            // 5. Navigation Listeners
             prevBtn.addEventListener('click', () => {
                 if (currentCharacterIndex > 0) {
                     currentCharacterIndex--;
                     clearCanvas();
                     updateCharacterDisplay();
+                    // Track navigation
+                    const currentChar = LANGUAGES[currentLanguage].characters[currentCharacterIndex];
+                    trackEvent('character_navigate', {
+                        direction: 'previous',
+                        language: currentLanguage.toLowerCase(),
+                        character: currentChar.char
+                    });
                 }
             });
 
             nextBtn.addEventListener('click', () => {
-                if (currentCharacterIndex < TELUGU_CHARACTERS.length - 1) {
+                const charListLength = LANGUAGES[currentLanguage].characters.length;
+                if (currentCharacterIndex < charListLength - 1) {
                     currentCharacterIndex++;
                     clearCanvas();
                     updateCharacterDisplay();
+                    // Track navigation
+                    const currentChar = LANGUAGES[currentLanguage].characters[currentCharacterIndex];
+                    trackEvent('character_navigate', {
+                        direction: 'next',
+                        language: currentLanguage.toLowerCase(),
+                        character: currentChar.char
+                    });
                 }
             });
 
-            // 3. Tool Listeners
+            // 6. Tool and Link Listeners
             clearBtn.addEventListener('click', clearCanvas);
-            // Check if the pronounceAudioBtn exists before adding listener (it's currently commented out in HTML)
-            if (pronounceAudioBtn) {
-                pronounceAudioBtn.addEventListener('click', handlePronounceAudio);
-            }
+            
+            // External link tracking
+            document.getElementById('suggestionsLink').addEventListener('click', () => {
+                trackEvent('external_link_click', { link_name: 'suggestions' });
+            });
 
-            // 4. Modal Activation Listeners
-            achuluBtn.addEventListener('click', () => openSelectorModal('achulu'));
-            halluluBtn.addEventListener('click', () => openSelectorModal('hallulu'));
+            document.getElementById('buyMeACoffeeLink').addEventListener('click', () => {
+                trackEvent('external_link_click', { link_name: 'buy_me_a_coffee' });
+            });
+            
+            // 7. Language Switch Listeners
+            // Note: switchLanguage handles saving the cookie
+            langBtns.forEach(btn => {
+                btn.addEventListener('click', () => switchLanguage(btn.dataset.lang));
+            });
+
+            // 8. Modal Listeners
             closeModalBtn.addEventListener('click', closeSelectorModal);
-
-            // Allow closing by clicking on the dark modal background
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     closeSelectorModal();
                 }
             });
             
-            // Global resize listener
+            // 9. Global resize listener
             window.addEventListener('resize', resizeCanvas);
         }
 
