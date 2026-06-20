@@ -1,7 +1,7 @@
 // TracingPad service worker — cache-first for the app shell so the kid can
 // keep practising without WiFi. Bump CACHE_VERSION any time the cached files
 // (HTML / manifest / icon / Tailwind CDN) change so the SW re-downloads them.
-const CACHE_VERSION = 'tracingpad-v2';
+const CACHE_VERSION = 'tracingpad-v3';
 const APP_SHELL = [
   './',
   './index.html',
