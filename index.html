@@ -1432,6 +1432,31 @@
             // gate the actual prompt() behind a 3-second hold so a kid can't
             // accidentally trigger the install dialog.
             initPwaInstall();
+
+            // 12. Keep the screen awake while the kid is practising. Browsers
+            // automatically drop the wake-lock when the tab loses visibility,
+            // so we re-acquire on visibilitychange.
+            initScreenWakeLock();
+        }
+
+        function initScreenWakeLock() {
+            // Wake Lock API is Chromium/Edge/Android-only. iOS Safari (16+)
+            // partially supports it; older browsers silently skip.
+            if (!('wakeLock' in navigator)) return;
+            let lock = null;
+            const acquire = async () => {
+                if (document.visibilityState !== 'visible') return;
+                try {
+                    lock = await navigator.wakeLock.request('screen');
+                    lock.addEventListener('release', () => { lock = null; });
+                } catch (_) { /* user denied / unsupported */ }
+            };
+            // Request once at startup so the screen stays on through the
+            // first ghost-trail demo even before the kid touches the slate.
+            acquire();
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && !lock) acquire();
+            });
         }
 
         function initPwaInstall() {
