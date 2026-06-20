@@ -1,0 +1,20 @@
+{
+  "name": "TracingPad — Learn to Write",
+  "short_name": "TracingPad",
+  "description": "Practice tracing the alphabets of Telugu, Hindi, English, and Tamil on a realistic digital slate. A free, kid-safe learning tool.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "en",
+  "background_color": "#2d3a3a",
+  "theme_color": "#2d3a3a",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

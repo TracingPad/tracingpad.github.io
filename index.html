@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2d3a3a">
+    <link rel="manifest" href="./manifest.json">
     <!-- START SEO OPTIMIZATION -->
     <title>Digital Tracing Pad | Practice Alphabets (Hindi, Telugu, English, Tamil)</title>
     
@@ -348,6 +350,22 @@
                         <option value="6">6</option>
                         <option value="all">All</option>
                     </select>
+
+                    <!-- PWA install — hidden until the browser fires beforeinstallprompt.
+                         Long-press 3s (parental lock) before the install prompt opens. -->
+                    <div id="pwaInstallRow" class="hidden" style="margin-top: 0.9rem;">
+                        <div class="section-label">Install app</div>
+                        <button id="pwaInstallBtn"
+                                class="w-full px-3 py-2 text-sm font-semibold rounded-lg shadow-sm transition bg-green-600 text-white hover:bg-green-700 relative overflow-hidden"
+                                title="Hold for 3 seconds to install TracingPad"
+                                aria-label="Install TracingPad (hold 3 seconds)">
+                            <span class="relative z-10">📲 Hold to install</span>
+                            <span id="pwaInstallFill"
+                                  style="position:absolute; left:0; top:0; bottom:0; width:0%;
+                                         background:rgba(255,255,255,0.25); transition: width 0.08s linear;
+                                         pointer-events:none;"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1397,6 +1415,66 @@
             
             // 9. Global resize listener
             window.addEventListener('resize', resizeCanvas);
+
+            // 10. PWA — register the service worker so the app shell works
+            // offline. Failures are silent (e.g. file://, in-app browsers).
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./service-worker.js')
+                        .catch(() => { /* offline-mode is a nice-to-have */ });
+                });
+            }
+
+            // 11. PWA install prompt — Chromium / Edge / Android fire
+            // beforeinstallprompt when the app meets installability criteria.
+            // We stash the event, reveal the install row in settings, and
+            // gate the actual prompt() behind a 3-second hold so a kid can't
+            // accidentally trigger the install dialog.
+            initPwaInstall();
+        }
+
+        function initPwaInstall() {
+            let deferredInstall = null;
+            const row = document.getElementById('pwaInstallRow');
+            const btn = document.getElementById('pwaInstallBtn');
+            const fill = document.getElementById('pwaInstallFill');
+            if (!row || !btn || !fill) return;
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredInstall = e;
+                row.classList.remove('hidden');
+                trackEvent('pwa_install_available', {});
+            });
+
+            window.addEventListener('appinstalled', () => {
+                row.classList.add('hidden');
+                deferredInstall = null;
+                trackEvent('pwa_installed', {});
+            });
+
+            // Block accidental short clicks — only the hold completion fires.
+            btn.addEventListener('click', (e) => e.preventDefault());
+
+            setupHoldToTrigger({
+                target: btn,
+                holdContainer: btn,
+                progressEl: null,
+                textEl: null,
+                durationMs: 3000,
+                onProgress: (pct) => { fill.style.width = (pct * 100) + '%'; },
+                onComplete: async () => {
+                    fill.style.width = '0%';
+                    if (!deferredInstall) return;
+                    try {
+                        deferredInstall.prompt();
+                        const choice = await deferredInstall.userChoice;
+                        trackEvent('pwa_install_choice', { outcome: choice && choice.outcome });
+                    } catch (_) { /* user dismissed or browser blocked */ }
+                    deferredInstall = null;
+                    row.classList.add('hidden');
+                },
+            });
         }
 
         // Initialize the app when the window loads
