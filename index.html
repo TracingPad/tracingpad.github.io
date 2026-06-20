@@ -474,6 +474,7 @@
         let currentLanguage = 'English'; 
         let currentCharacterIndex = 0;
         let isDrawing = false;
+        let lastDrawX = 0, lastDrawY = 0, smoothedBrushWidth = currentBrushSize;
 
         // Multi-character grid: how many characters render on the slate at once.
         // Persisted in the tracingPadCharsPerScreen cookie. Allowed values:
@@ -1104,6 +1105,13 @@
             ctx.lineWidth = currentBrushSize;
         }
 
+        function pressureToWidth(pressure) {
+            const minBrush = currentBrushSize * 0.35;
+            const maxBrush = currentBrushSize * 1.6;
+            const p = Math.min(1, Math.max(0.05, pressure || 0.5));
+            return minBrush + (maxBrush - minBrush) * ((p - 0.05) / 0.95);
+        }
+
         function resizeCanvas() {
             const containerSize = canvasContainer.clientWidth; 
             canvas.width = containerSize;
@@ -1149,9 +1157,15 @@
             }
             isDrawing = true;
             const { x, y } = getPos(event);
+            setDrawingStyle();
+            if (inputMode === 'pen') {
+                lastDrawX = x;
+                lastDrawY = y;
+                smoothedBrushWidth = pressureToWidth(event.pressure);
+                ctx.lineWidth = smoothedBrushWidth;
+            }
             ctx.beginPath();
             ctx.moveTo(x, y);
-            setDrawingStyle();
         }
 
         function draw(event) {
@@ -1166,6 +1180,20 @@
                 return;
             }
 
+            if (inputMode === 'pen') {
+                const targetWidth = event.pressure > 0 ? pressureToWidth(event.pressure) : smoothedBrushWidth;
+                smoothedBrushWidth = smoothedBrushWidth * 0.7 + targetWidth * 0.3;
+                ctx.beginPath();
+                ctx.moveTo(lastDrawX, lastDrawY);
+                ctx.lineTo(x, y);
+                ctx.lineWidth = smoothedBrushWidth;
+                ctx.stroke();
+                lastDrawX = x;
+                lastDrawY = y;
+                applyMaskClip();
+                return;
+            }
+
             ctx.lineTo(x, y);
             ctx.stroke();
             ctx.beginPath(); 
@@ -1174,8 +1202,12 @@
         }
 
         function stopDrawing() {
+            if (!isDrawing) return;
             isDrawing = false;
             ctx.closePath();
+            if (inputMode === 'pen') {
+                applyMaskClip();
+            }
         }
 
         // --- Modal Functions ---
