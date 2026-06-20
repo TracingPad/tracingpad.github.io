@@ -66,31 +66,214 @@
             overflow: hidden;
         }
 
-        /* Character Guide Text */
+        /* Character Guide Text — JS renders one or more positioned cells
+           inside this container, so it just needs to span the whole slate area. */
         #tracing-guide {
             position: absolute;
-            top: 55%; 
-            left: 50%;
-            transform: translate(-50%, -50%); 
-            font-size: 30vw; /* Default size for regional scripts */
-            max-width: 90%;
-            text-align: center;
-            line-height: 1;
+            inset: 0;
+            pointer-events: none;
+            user-select: none;
+        }
+        .guide-cell {
+            position: absolute;
+            transform: translate(-50%, -50%);
             font-weight: 900;
-            color: rgba(255, 255, 255, 0.1); 
+            line-height: 1;
+            color: rgba(255, 255, 255, 0.1);
+            text-align: center;
             user-select: none;
             pointer-events: none;
-        }
-        
-        /* Adjust guide font size for English (A-Z) to prevent overflow */
-        .lang-english #tracing-guide {
-             font-size: 25vw; 
         }
 
         /* Ensure canvas fills the container */
         #tracingCanvas {
             width: 100%;
             height: 100%;
+            touch-action: none; /* required for Pointer Events / palm rejection */
+        }
+
+        /* --- Input-mode toggle (Finger Lv0 / Pen Lv1) --- */
+        #inputModeToggle { user-select: none; -webkit-user-select: none; }
+        #toggleTrack {
+            position: relative;
+            width: 7rem; height: 2.4rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 9999px;
+            display: flex; align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden; /* keep the in-pill fill clipped to the rounded shape */
+        }
+        /* Hold-to-flip fill: grows from the DESTINATION side inward, coloured like the
+           destination mode. Indigo creeps in from the right when going Touch→Pen,
+           yellow creeps in from the left when going Pen→Touch. */
+        #toggleFill {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: var(--hold-pct, 0%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.18s ease, width 0.05s linear, background 0.2s ease;
+            z-index: 0;
+        }
+        body:not(.mode-pen) #toggleFill { right: 0; background: #6366f1; }
+        body.mode-pen       #toggleFill { left:  0; background: #facc15; }
+        #inputModeToggle.holding #toggleFill { opacity: 1; }
+        /* Knob + labels stack above the fill */
+        #toggleKnob { z-index: 2; }
+        #toggleTrack .toggle-label { z-index: 1; }
+        /* While holding, labels go white for contrast against either fill colour */
+        #inputModeToggle.holding .toggle-label { color: #ffffff; }
+        #toggleKnob {
+            position: absolute;
+            top: 3px; left: 3px;
+            width: 1.9rem; height: 1.9rem;
+            border-radius: 9999px;
+            background: #facc15;
+            color: #1f2937;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.05rem;
+            transition: left 0.35s cubic-bezier(0.68, -0.55, 0.27, 1.55), background 0.35s, color 0.35s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 2;
+        }
+        body.mode-pen #toggleKnob {
+            left: calc(7rem - 1.9rem - 3px);
+            background: #6366f1;
+            color: #ffffff;
+        }
+        #toggleTrack .toggle-label {
+            position: absolute;
+            font-size: 0.7rem; font-weight: 800;
+            pointer-events: none;
+            color: #9ca3af;
+            letter-spacing: 0.02em;
+        }
+        #toggleTrack .label-finger { left: 2.4rem; color: #1f2937; }
+        #toggleTrack .label-pen    { right: 0.7rem; }
+        body.mode-pen #toggleTrack .label-finger { color: #9ca3af; }
+        body.mode-pen #toggleTrack .label-pen    { color: #1f2937; }
+
+        /* --- Settings (gear) popover --- */
+        #settingsBtn {
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+            width: 2.4rem; height: 2.4rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            cursor: pointer;
+            transition: transform 0.3s ease, background 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+            overflow: visible;
+            flex-shrink: 0;
+        }
+        #settingsBtn:hover { background: #ffffff; }
+        #settingsBtn.open { transform: rotate(90deg); background: #facc15; }
+
+        /* Hold-to-open countdown ring around the gear */
+        #settingsHoldRing {
+            position: absolute;
+            inset: -4px;
+            width: calc(100% + 8px);
+            height: calc(100% + 8px);
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.85);
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+        #settingsBtn.holding #settingsHoldRing { opacity: 1; transform: scale(1); }
+        #settingsHoldProgress { transition: stroke-dashoffset 0.05s linear; }
+
+        #settingsPopover {
+            position: absolute;
+            top: calc(100% + 0.7rem);
+            right: 0;
+            min-width: 14rem;
+            background: white;
+            border-radius: 0.9rem;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+            padding: 0.9rem;
+            z-index: 50;
+            opacity: 0;
+            transform: translateY(-6px) scale(0.96);
+            transform-origin: top right;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            pointer-events: none;
+        }
+        #settingsPopover.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        #settingsPopover .section-label {
+            font-size: 0.7rem; font-weight: 800;
+            color: #6b7280; text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.5rem;
+        }
+        #settingsPopover .lang-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.45rem;
+        }
+        /* small arrow pointing up at the gear (gear sits at the popover's right edge) */
+        #settingsPopover::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            right: 0.85rem;
+            width: 12px; height: 12px;
+            background: white;
+            transform: rotate(45deg);
+            box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.06);
+        }
+    
+        .palm-reject-toast {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            background: rgba(239, 68, 68, 0.92);
+            color: white; font-size: 0.85rem; font-weight: 700;
+            padding: 0.3rem 0.65rem;
+            border-radius: 9999px;
+            pointer-events: none;
+            animation: palmToastFade 0.9s ease-out forwards;
+            z-index: 40;
+        }
+        @keyframes palmToastFade {
+            0%   { opacity: 0; transform: translate(-50%, -80%) scale(0.8); }
+            20%  { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -130%) scale(1); }
+        }
+
+        /* Footer hold-to-open links (kid-safety: a tap won't navigate; you must hold). */
+        .hold-link {
+            position: relative;
+            display: inline-block;
+            padding: 0 0.25rem;
+            border-radius: 0.3rem;
+            background-image: linear-gradient(to right, rgba(250, 204, 21, 0.85), rgba(250, 204, 21, 0.85));
+            background-repeat: no-repeat;
+            background-size: var(--hold-pct, 0%) 100%;
+            background-position: left center;
+            transition: background-size 0.05s linear, color 0.2s ease;
+            cursor: pointer;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .hold-link.holding { color: #1f2937; }
+        .hold-link.unlocked {
+            background-image: linear-gradient(to right, rgba(34, 197, 94, 0.9), rgba(34, 197, 94, 0.9));
+            background-size: 100% 100%;
+            color: white;
+            transition: background-size 0.25s ease, color 0.25s ease;
         }
     </style>
 </head>
@@ -110,38 +293,76 @@
         </div>
     </div>
     
-    <!-- Top Bar: Title and External Links -->
-    <div class="w-full max-w-[92vw] mx-auto mb-4 px-4 flex justify-center items-center relative"> 
-        
-        <!-- Suggestions Link (Left) -->
-        <a 
-            href="#" 
-            id="suggestionsLink"
-            target="_blank" 
-            class="absolute left-4 inline-flex items-center space-x-2 px-3 py-1 text-sm bg-indigo-200 text-gray-800 font-bold rounded-full shadow-lg hover:bg-indigo-100 transition transform hover:scale-105" 
-            title="Suggest Features or Report Bugs"
-        >
-            <span>Suggestions 💡</span>
-        </a>
+    <!-- Top Bar: Title + (Gear with popover) + Input-Mode Toggle (right cluster) -->
+    <div class="w-full max-w-[92vw] mx-auto mb-4 px-4 flex justify-center items-center relative">
 
         <!-- Main Title (Centered) -->
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-white/90 drop-shadow-lg user-select-none pointer-events-none">Tracing Pad</h1> 
-        
-        <!-- Buy Me A Coffee Link (Right) -->
-        <a href="https://www.buymeacoffee.com/saigandikota" 
-            id="buyMeACoffeeLink"
-            target="_blank" 
-            class="absolute right-4 inline-flex items-center space-x-2 px-3 py-1 text-sm bg-yellow-400 text-gray-900 font-bold rounded-full shadow-lg hover:bg-yellow-300 transition transform hover:scale-105">
-            <span>Buy me a Coffee ☕</span>
-        </a>
-    </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white/90 drop-shadow-lg user-select-none pointer-events-none">Tracing Pad</h1>
 
-    <!-- Language Selector Buttons -->
-    <div class="flex justify-center space-x-2 mb-4">
-        <button id="langTeluguBtn" data-lang="Telugu" class="lang-btn px-4 py-2 text-sm font-semibold rounded-full shadow-md transition">Telugu</button>
-        <button id="langHindiBtn" data-lang="Hindi" class="lang-btn px-4 py-2 text-sm font-semibold rounded-full shadow-md transition">Hindi</button>
-        <button id="langEnglishBtn" data-lang="English" class="lang-btn px-4 py-2 text-sm font-semibold rounded-full shadow-md transition">English</button>
-        <button id="langTamilBtn" data-lang="Tamil" class="lang-btn px-4 py-2 text-sm font-semibold rounded-full shadow-md transition">Tamil</button>
+        <!-- Right-side controls cluster: Gear (hold-to-open) + Touch/Pen toggle (hold-to-flip) -->
+        <div class="absolute right-4 flex items-center gap-3">
+
+            <!-- Settings gear + popover (gear is a positioning anchor for the popover) -->
+            <div class="relative">
+                <button id="settingsBtn" type="button"
+                        aria-label="Settings (hold to open)"
+                        aria-expanded="false" aria-controls="settingsPopover"
+                        title="Hold to open settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2.2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    <!-- Countdown ring overlay (shows while held) -->
+                    <svg id="settingsHoldRing" viewBox="0 0 36 36" aria-hidden="true">
+                        <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(15,23,42,0.18)" stroke-width="2"/>
+                        <circle id="settingsHoldProgress" cx="18" cy="18" r="16" fill="none"
+                                stroke="#6366f1" stroke-width="3"
+                                stroke-dasharray="100.5" stroke-dashoffset="100.5"
+                                stroke-linecap="round" transform="rotate(-90 18 18)"/>
+                    </svg>
+                </button>
+
+                <!-- Settings popover (anchored under the gear, drops down to the right cluster) -->
+                <div id="settingsPopover" role="dialog" aria-label="Settings">
+                    <div class="section-label">Language</div>
+                    <div class="lang-grid">
+                        <button id="langTeluguBtn"  data-lang="Telugu"  class="lang-btn px-3 py-2 text-sm font-semibold rounded-lg shadow-sm transition">Telugu</button>
+                        <button id="langHindiBtn"   data-lang="Hindi"   class="lang-btn px-3 py-2 text-sm font-semibold rounded-lg shadow-sm transition">Hindi</button>
+                        <button id="langEnglishBtn" data-lang="English" class="lang-btn px-3 py-2 text-sm font-semibold rounded-lg shadow-sm transition">English</button>
+                        <button id="langTamilBtn"   data-lang="Tamil"   class="lang-btn px-3 py-2 text-sm font-semibold rounded-lg shadow-sm transition">Tamil</button>
+                    </div>
+                    <div class="section-label" style="margin-top: 0.9rem;">Tracing</div>
+                    <label class="flex items-center gap-2 px-1 py-1 cursor-pointer select-none">
+                        <input id="stayInLinesCheckbox" type="checkbox" class="w-4 h-4 accent-indigo-500" checked>
+                        <span class="text-sm text-gray-700 font-medium">Stay in the lines</span>
+                    </label>
+
+                    <div class="section-label" style="margin-top: 0.9rem;">Characters per screen</div>
+                    <select id="charsPerScreenSelect"
+                            class="w-full px-2 py-1.5 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="4">4</option>
+                        <option value="6">6</option>
+                        <option value="all">All</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Input Mode Toggle — Touch ↔ Pen with 10-sec hold-to-flip parental lock -->
+            <div id="inputModeToggle" class="flex items-center"
+                 title="Hold for 10 seconds to switch input mode"
+                 aria-label="Input mode toggle (hold to switch)">
+                <div id="toggleTrack" role="switch" aria-checked="false" tabindex="0">
+                    <div id="toggleFill"></div>
+                    <div id="toggleKnob">✋</div>
+                    <span class="toggle-label label-finger">Touch</span>
+                    <span class="toggle-label label-pen">Pen</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Canvas Area (The Slate) -->
@@ -189,6 +410,17 @@
 
         <canvas id="tracingCanvas"></canvas>
     </div>
+
+    <!-- Footer credit -->
+    <footer class="text-center text-xs sm:text-sm text-white/70 mt-2 mb-4 px-4 user-select-none">
+        Created with <span aria-label="love">❤️</span> by
+        <a href="https://www.linkedin.com/in/saikoushikg/" target="_blank" rel="noopener noreferrer"
+           class="underline hover:text-white transition">Saikoushik Gandikota</a>
+        &middot; GitHub:
+        <a href="https://github.com/skgandikota" target="_blank" rel="noopener noreferrer"
+           class="underline hover:text-white transition">skgandikota</a>
+        &mdash; for my kid and your kids.
+    </footer>
 
     <script>
         // --- Cookie Utility Functions for Language Persistence ---
@@ -242,6 +474,17 @@
         let currentLanguage = 'English'; 
         let currentCharacterIndex = 0;
         let isDrawing = false;
+
+        // Multi-character grid: how many characters render on the slate at once.
+        // Persisted in the tracingPadCharsPerScreen cookie. Allowed values:
+        //   1, 2, 4, 6, or 'all' (auto cols×rows to fit every character).
+        const CHARS_PER_SCREEN_COOKIE = 'tracingPadCharsPerScreen';
+        function parseCharsPerScreen(v) {
+            if (v === 'all') return 'all';
+            const n = parseInt(v, 10);
+            return [1, 2, 4, 6].includes(n) ? n : null;
+        }
+        let charsPerScreen = parseCharsPerScreen(getCookie(CHARS_PER_SCREEN_COOKIE)) || 1;
         
         // --- Character Data Definitions ---
         
@@ -421,21 +664,137 @@
             });
         }
 
+        // --- Multi-character grid helpers ---
+
+        // Static grid shapes for fixed page sizes. 'all' is computed on the fly
+        // so that every character in the active language fits the slate area.
+        const GRID_LAYOUTS = {
+            1: { cols: 1, rows: 1 },
+            2: { cols: 2, rows: 1 },
+            4: { cols: 2, rows: 2 },
+            6: { cols: 3, rows: 2 },
+        };
+
+        function pageSize() {
+            if (charsPerScreen === 'all') {
+                return LANGUAGES[currentLanguage].characters.length;
+            }
+            return charsPerScreen;
+        }
+
+        function visibleChars() {
+            const list = LANGUAGES[currentLanguage].characters;
+            const n = pageSize();
+            return list.slice(currentCharacterIndex, currentCharacterIndex + n);
+        }
+
+        // Compute the on-canvas grid for the current page. Returns cols/rows,
+        // font-size to render each character at, and cellCenter(i) → {x,y} for
+        // the centre of the i-th cell in CANVAS pixel coordinates (matches what
+        // buildCharacterMask expects).
+        function computeGridLayout(visibleCount) {
+            const headerEl = document.getElementById('slate-header-content');
+            const pronEl   = document.getElementById('pronunciation-container');
+            const headerH = (headerEl && headerEl.offsetHeight) || 80;
+            const pronH   = (pronEl   && pronEl.offsetHeight)   || 32;
+
+            const topPad    = headerH + 8;
+            const bottomPad = pronH   + 8;
+            const sidePad   = Math.max(12, canvas.width * 0.03);
+
+            const usableW = Math.max(40, canvas.width  - sidePad * 2);
+            const usableH = Math.max(40, canvas.height - topPad - bottomPad);
+
+            let cols, rows;
+            if (charsPerScreen === 'all') {
+                const total = Math.max(1, visibleCount);
+                cols = Math.max(1, Math.round(Math.sqrt(total * usableW / usableH)));
+                rows = Math.ceil(total / cols);
+            } else {
+                const shape = GRID_LAYOUTS[charsPerScreen] || GRID_LAYOUTS[1];
+                cols = shape.cols;
+                rows = shape.rows;
+            }
+
+            const gap = Math.min(usableW, usableH) * 0.02;
+            const cellW = (usableW - gap * (cols - 1)) / cols;
+            const cellH = (usableH - gap * (rows - 1)) / rows;
+            const fontPx = Math.max(14, Math.floor(Math.min(cellW, cellH) * 0.82));
+
+            return {
+                cols, rows, cellW, cellH, fontPx, topPad, sidePad, gap,
+                cellCenter(i) {
+                    const r = Math.floor(i / cols);
+                    const c = i % cols;
+                    return {
+                        x: sidePad + c * (cellW + gap) + cellW / 2,
+                        y: topPad  + r * (cellH + gap) + cellH / 2,
+                    };
+                },
+            };
+        }
+
+        // Renders the visible characters as positioned children of #tracing-guide.
+        // The guide div spans the full canvas area; each cell is absolutely placed.
+        function renderGuide() {
+            const visible = visibleChars();
+            guideDiv.innerHTML = '';
+            if (!visible.length || !canvas.width || !canvas.height) return;
+            const grid = computeGridLayout(visible.length);
+            visible.forEach((charData, i) => {
+                const { x, y } = grid.cellCenter(i);
+                const cell = document.createElement('div');
+                cell.className = 'guide-cell';
+                cell.textContent = charData.char;
+                cell.style.left = `${x}px`;
+                cell.style.top = `${y}px`;
+                cell.style.fontSize = `${grid.fontPx}px`;
+                guideDiv.appendChild(cell);
+            });
+        }
+
         /**
-         * Updates the displayed character, subtitle, and navigation buttons.
+         * Updates the displayed character(s), subtitle, and navigation buttons.
          */
         function updateCharacterDisplay() {
             const charList = LANGUAGES[currentLanguage].characters;
-            const charData = charList[currentCharacterIndex];
-            
-            // Update guide text and pronunciation
-            guideDiv.textContent = charData.char;
-            pronunciationTextDisplay.textContent = `Pronunciation: ${charData.pron}`;
+            const n = pageSize();
+
+            // Clamp & align currentCharacterIndex to a valid page-start.
+            if (charList.length === 0) {
+                currentCharacterIndex = 0;
+            } else {
+                if (charsPerScreen === 'all') {
+                    currentCharacterIndex = 0;
+                } else {
+                    currentCharacterIndex = Math.min(currentCharacterIndex, charList.length - 1);
+                    currentCharacterIndex = Math.floor(currentCharacterIndex / n) * n;
+                }
+            }
+
+            renderGuide();
             subtitleText.textContent = LANGUAGES[currentLanguage].subtitle;
-            
-            // Update button states
+
+            // Pronunciation only makes sense in single-character mode.
+            const visible = visibleChars();
+            if (n === 1 && visible.length === 1) {
+                pronunciationTextDisplay.textContent = `Pronunciation: ${visible[0].pron}`;
+            } else if (charsPerScreen === 'all') {
+                pronunciationTextDisplay.textContent = `All ${visible.length} characters`;
+            } else {
+                const start = currentCharacterIndex + 1;
+                const end   = currentCharacterIndex + visible.length;
+                pronunciationTextDisplay.textContent = `Characters ${start}–${end} of ${charList.length}`;
+            }
+
+            // Update navigation button states (page-aware).
             prevBtn.disabled = currentCharacterIndex === 0;
-            nextBtn.disabled = currentCharacterIndex === charList.length - 1;
+            nextBtn.disabled = (charsPerScreen === 'all') ||
+                               (currentCharacterIndex + n >= charList.length);
+
+            // Rebuild the glyph mask AFTER the DOM/CSS reflow so getComputedStyle
+            // returns the right font size for each cell.
+            requestAnimationFrame(buildCharacterMask);
         }
         
         /**
@@ -501,8 +860,245 @@
             });
         }
 
+        // --- Input-Mode Toggle (Touch ↔ Pen) -----------------------------------
+        // Touch mode: any pointer draws (toddler-friendly).
+        // Pen mode:   only pen / mouse pointers draw — finger touches are ignored
+        //             so a child resting their palm on the screen doesn't smear chalk.
+        // Switching modes requires a 10-second sustained hold (parental lock so
+        // little fingers don't flip it back accidentally).
+        const HOLD_DURATION_MS = 10000;
+        const INPUT_MODE_COOKIE = 'tracingPadInputMode';
+
+        let inputMode = (getCookie(INPUT_MODE_COOKIE) === 'pen') ? 'pen' : 'touch';
+
+        const inputToggle  = document.getElementById('inputModeToggle');
+        const toggleTrack  = document.getElementById('toggleTrack');
+        const toggleKnob   = document.getElementById('toggleKnob');
+        const toggleFill   = document.getElementById('toggleFill');
+
+        function applyInputMode() {
+            document.body.classList.toggle('mode-pen', inputMode === 'pen');
+            toggleKnob.textContent = inputMode === 'pen' ? '✏️' : '✋';
+            toggleTrack.setAttribute('aria-checked', String(inputMode === 'pen'));
+            inputToggle.title = inputMode === 'pen'
+                ? 'Pen mode — finger touches are ignored. Hold 10s to switch back.'
+                : 'Touch mode — anything draws. Hold 10s to switch to Pen.';
+        }
+
+        function isAllowedPointer(event) {
+            if (!event.pointerType) return true; // legacy / non-pointer fallback
+            if (inputMode === 'pen') {
+                // Allow stylus and mouse; reject finger touches (palm rejection).
+                return event.pointerType === 'pen' || event.pointerType === 'mouse';
+            }
+            return true;
+        }
+
+        function showPalmRejectToast(event) {
+            // Tiny ✋ "use the pen!" hint at the rejected touch position.
+            const toast = document.createElement('div');
+            toast.className = 'palm-reject-toast';
+            toast.textContent = '✋ Pen only';
+            const rect = canvasContainer.getBoundingClientRect();
+            toast.style.left = (event.clientX - rect.left) + 'px';
+            toast.style.top  = (event.clientY - rect.top)  + 'px';
+            canvasContainer.appendChild(toast);
+            setTimeout(() => toast.remove(), 900);
+        }
+
+        // Generic hold-to-trigger helper (used by both the input-mode toggle and the
+        // settings gear). Press & hold the target for `durationMs` to fire `onComplete`;
+        // release early to cancel. Renders a circular SVG countdown ring.
+        function setupHoldToTrigger({ target, holdContainer, progressEl, textEl, durationMs, onComplete, onProgress }) {
+            const CIRC = 100.5; // 2 * π * 16 (matches r="16" rings in the markup)
+            const container = holdContainer || target;
+            let rafId = null;
+            let startTs = 0;
+
+            const tick = (now) => {
+                const elapsed = now - startTs;
+                const pct = Math.min(1, elapsed / durationMs);
+                if (progressEl) progressEl.setAttribute('stroke-dashoffset', String(CIRC * (1 - pct)));
+                if (textEl)     textEl.textContent = Math.max(0, Math.ceil((durationMs - elapsed) / 1000));
+                if (onProgress) onProgress(pct);
+                if (elapsed >= durationMs) { onComplete(); end(); return; }
+                rafId = requestAnimationFrame(tick);
+            };
+            const begin = (e) => {
+                if (e && e.preventDefault) e.preventDefault();
+                if (rafId) return;
+                container.classList.add('holding');
+                startTs = performance.now();
+                rafId = requestAnimationFrame(tick);
+            };
+            const end = () => {
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = null;
+                container.classList.remove('holding');
+                if (progressEl) progressEl.setAttribute('stroke-dashoffset', String(CIRC));
+                if (textEl)     textEl.textContent = String(Math.ceil(durationMs / 1000));
+                if (onProgress) onProgress(0);
+            };
+
+            target.addEventListener('pointerdown',   begin);
+            target.addEventListener('pointerup',     end);
+            target.addEventListener('pointerleave',  end);
+            target.addEventListener('pointercancel', end);
+            target.addEventListener('contextmenu', e => e.preventDefault());
+            // Keyboard a11y: Space holds, releasing cancels.
+            target.addEventListener('keydown', e => { if (e.code === 'Space' && !e.repeat) begin(e); });
+            target.addEventListener('keyup',   e => { if (e.code === 'Space') end(); });
+        }
+
+        function flipInputMode() {
+            inputMode = (inputMode === 'pen') ? 'touch' : 'pen';
+            setCookie(INPUT_MODE_COOKIE, inputMode, 365);
+            applyInputMode();
+            trackEvent('input_mode_change', { mode: inputMode });
+        }
+
+        function initInputModeToggle() {
+            applyInputMode();
+            toggleFill.style.setProperty('--hold-pct', '0%');
+            setupHoldToTrigger({
+                target: toggleTrack,
+                holdContainer: inputToggle,
+                progressEl: null,
+                textEl: null,
+                durationMs: HOLD_DURATION_MS,
+                onProgress: (pct) => toggleFill.style.setProperty('--hold-pct', (pct * 100) + '%'),
+                onComplete: flipInputMode,
+            });
+        }
+
+        // --- Settings popover (hold the gear to open) ---
+        const SETTINGS_HOLD_MS = 3000; // 3-second hold to open settings
+        const settingsBtn      = document.getElementById('settingsBtn');
+        const settingsPopover  = document.getElementById('settingsPopover');
+        const settingsProgress = document.getElementById('settingsHoldProgress');
+
+        function openSettingsPopover() {
+            settingsPopover.classList.add('open');
+            settingsBtn.classList.add('open');
+            settingsBtn.setAttribute('aria-expanded', 'true');
+            trackEvent('settings_open');
+        }
+        function closeSettingsPopover() {
+            settingsPopover.classList.remove('open');
+            settingsBtn.classList.remove('open');
+            settingsBtn.setAttribute('aria-expanded', 'false');
+        }
+        function initSettingsGear() {
+            setupHoldToTrigger({
+                target: settingsBtn,
+                holdContainer: settingsBtn,
+                progressEl: settingsProgress,
+                textEl: null,
+                durationMs: SETTINGS_HOLD_MS,
+                onComplete: openSettingsPopover,
+            });
+            // Click-outside closes the popover.
+            document.addEventListener('pointerdown', (e) => {
+                if (!settingsPopover.classList.contains('open')) return;
+                if (settingsPopover.contains(e.target) || settingsBtn.contains(e.target)) return;
+                closeSettingsPopover();
+            });
+            // Esc closes the popover.
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeSettingsPopover();
+            });
+        }
+
+        // --- Footer link locks (kid-safety: a tap won't navigate; you must hold 2s) ---
+        const FOOTER_LINK_HOLD_MS = 10000;
+        function initFooterLinkLocks() {
+            const links = document.querySelectorAll('footer a[href]');
+            links.forEach(link => {
+                link.classList.add('hold-link');
+                link.style.setProperty('--hold-pct', '0%');
+                // Always block direct navigation; only our hold completion may open the URL.
+                link.addEventListener('click', e => e.preventDefault());
+                setupHoldToTrigger({
+                    target: link,
+                    holdContainer: link,
+                    progressEl: null,
+                    textEl: null,
+                    durationMs: FOOTER_LINK_HOLD_MS,
+                    onProgress: (pct) => link.style.setProperty('--hold-pct', (pct * 100) + '%'),
+                    onComplete: () => {
+                        link.classList.add('unlocked');
+                        setTimeout(() => link.classList.remove('unlocked'), 700);
+                        window.open(link.href, '_blank', 'noopener,noreferrer');
+                        trackEvent('footer_link_open', { href: link.href });
+                    },
+                });
+            });
+        }
+
         // --- Drawing and Canvas Helpers ---
         
+        // Offscreen "glyph mask" that lets the kid deposit chalk ONLY inside the current
+        // character's shape (true tracing). After every stroke we use
+        // globalCompositeOperation='destination-in' with this mask to clip the chalk to
+        // the glyph silhouette.
+        const maskCanvas = document.createElement('canvas');
+        const maskCtx = maskCanvas.getContext('2d');
+        const STAY_IN_LINES_COOKIE = 'tracingPadStayInLines';
+        let stayInLines = (getCookie(STAY_IN_LINES_COOKIE) !== '0'); // default ON
+
+        function buildCharacterMask() {
+            if (!canvas.width || !canvas.height) return;
+            if (maskCanvas.width !== canvas.width || maskCanvas.height !== canvas.height) {
+                maskCanvas.width = canvas.width;
+                maskCanvas.height = canvas.height;
+            }
+            maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+            if (!stayInLines) return; // free-draw mode: empty mask is never applied
+
+            const visible = visibleChars();
+            if (!visible.length) return;
+            const grid = computeGridLayout(visible.length);
+
+            // Pull font-family from the body — guide cells don't have a stable
+            // computed style until they're in the DOM, but we just want the same
+            // family the cells are using (inherited from <body>).
+            const cs = window.getComputedStyle(document.body);
+            const fontFamily = cs.fontFamily || "'Inter', sans-serif";
+            const fontWeight = '900';
+
+            maskCtx.font = `${fontWeight} ${grid.fontPx}px ${fontFamily}`;
+            maskCtx.textAlign = 'center';
+            maskCtx.textBaseline = 'middle';
+            maskCtx.fillStyle = '#ffffff';
+            maskCtx.strokeStyle = '#ffffff';
+            maskCtx.lineJoin = 'round';
+            maskCtx.lineCap  = 'round';
+            maskCtx.miterLimit = 2;
+
+            // Inflate the silhouette so a full chalk circle fits right at the edge.
+            // We use strokeText() with a thick rounded line (centred on the glyph
+            // outline, expanding it uniformly by lineWidth/2) — this dilates
+            // curves and thin loops cleanly. For multi-character grids we scale
+            // the inflation with cell size so tiny chars don't get over-fattened.
+            const inflateMax = currentBrushSize / 2 + 2;
+            const inflate = Math.max(2, Math.min(inflateMax, grid.fontPx * 0.07));
+            maskCtx.lineWidth = inflate * 2;
+
+            visible.forEach((charData, i) => {
+                const { x, y } = grid.cellCenter(i);
+                maskCtx.strokeText(charData.char, x, y);
+                maskCtx.fillText(charData.char, x, y);
+            });
+        }
+
+        function applyMaskClip() {
+            if (!stayInLines) return;
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.drawImage(maskCanvas, 0, 0);
+            ctx.restore();
+        }
+
         function setDrawingStyle() {
             ctx.strokeStyle = DEFAULT_CHALK_COLOR; // Use fixed chalk color
             ctx.lineWidth = currentBrushSize;
@@ -516,7 +1112,12 @@
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             clearCanvas(); 
-            // Note: updateCharacterDisplay() is not strictly needed here as it will be called by init/switchLanguage
+            // Re-render the guide cells (positions depend on canvas dimensions)
+            // and rebuild the glyph mask. Run inside rAF so layout settles first.
+            requestAnimationFrame(() => {
+                renderGuide();
+                buildCharacterMask();
+            });
         }
 
         function getPos(event) {
@@ -538,15 +1139,23 @@
         }
         
         function startDrawing(event) {
+            if (!isAllowedPointer(event)) {
+                showPalmRejectToast(event);
+                return;
+            }
             event.preventDefault();
+            if (event.pointerId !== undefined && event.target.setPointerCapture) {
+                try { event.target.setPointerCapture(event.pointerId); } catch (_) {}
+            }
             isDrawing = true;
             const { x, y } = getPos(event);
             ctx.beginPath();
             ctx.moveTo(x, y);
-            setDrawingStyle(); 
+            setDrawingStyle();
         }
 
         function draw(event) {
+            if (!isAllowedPointer(event)) return;
             event.preventDefault();
             if (!isDrawing) return;
 
@@ -561,6 +1170,7 @@
             ctx.stroke();
             ctx.beginPath(); 
             ctx.moveTo(x, y);
+            applyMaskClip();
         }
 
         function stopDrawing() {
@@ -602,7 +1212,12 @@
                 button.addEventListener('click', () => {
                     const charIndex = getCharacterIndex(data.char);
                     if (charIndex !== -1) {
-                        currentCharacterIndex = charIndex;
+                        // Page-align so the picked char appears on its current page.
+                        if (charsPerScreen === 'all') {
+                            currentCharacterIndex = 0;
+                        } else {
+                            currentCharacterIndex = Math.floor(charIndex / charsPerScreen) * charsPerScreen;
+                        }
                         clearCanvas();
                         updateCharacterDisplay();
                         closeSelectorModal();
@@ -644,20 +1259,19 @@
             currentLanguage = 'Initial'; 
             switchLanguage(initialLang); 
 
-            // 4. Canvas Drawing Listeners
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('touchstart', startDrawing, { passive: false });
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('touchmove', draw, { passive: false });
-            canvas.addEventListener('mouseout', stopDrawing);
-            window.addEventListener('mouseup', stopDrawing); 
-            window.addEventListener('touchend', stopDrawing); 
-            window.addEventListener('touchcancel', stopDrawing); 
+            // 4. Canvas Drawing Listeners (Pointer Events: unified mouse/pen/touch path)
+            canvas.addEventListener('pointerdown',   startDrawing);
+            canvas.addEventListener('pointermove',   draw);
+            canvas.addEventListener('pointerup',     stopDrawing);
+            canvas.addEventListener('pointerleave',  stopDrawing);
+            canvas.addEventListener('pointercancel', stopDrawing);
+            canvas.addEventListener('contextmenu', e => e.preventDefault()); 
 
-            // 5. Navigation Listeners
+            // 5. Navigation Listeners (page-aware — step by current page size)
             prevBtn.addEventListener('click', () => {
                 if (currentCharacterIndex > 0) {
-                    currentCharacterIndex--;
+                    const n = pageSize();
+                    currentCharacterIndex = Math.max(0, currentCharacterIndex - n);
                     clearCanvas();
                     updateCharacterDisplay();
                     // Track navigation
@@ -665,15 +1279,17 @@
                     trackEvent('character_navigate', {
                         direction: 'previous',
                         language: currentLanguage.toLowerCase(),
-                        character: currentChar.char
+                        character: currentChar.char,
+                        page_size: charsPerScreen
                     });
                 }
             });
 
             nextBtn.addEventListener('click', () => {
                 const charListLength = LANGUAGES[currentLanguage].characters.length;
-                if (currentCharacterIndex < charListLength - 1) {
-                    currentCharacterIndex++;
+                const n = pageSize();
+                if (currentCharacterIndex + n < charListLength) {
+                    currentCharacterIndex = Math.min(charListLength - 1, currentCharacterIndex + n);
                     clearCanvas();
                     updateCharacterDisplay();
                     // Track navigation
@@ -681,7 +1297,8 @@
                     trackEvent('character_navigate', {
                         direction: 'next',
                         language: currentLanguage.toLowerCase(),
-                        character: currentChar.char
+                        character: currentChar.char,
+                        page_size: charsPerScreen
                     });
                 }
             });
@@ -689,19 +1306,53 @@
             // 6. Tool and Link Listeners
             clearBtn.addEventListener('click', clearCanvas);
             
-            // External link tracking
-            document.getElementById('suggestionsLink').addEventListener('click', () => {
-                trackEvent('external_link_click', { link_name: 'suggestions' });
+            // Input-mode toggle (Touch ↔ Pen) with 10-second hold-to-flip parental lock
+            initInputModeToggle();
+
+            // Settings gear (hold 3s to open language picker popover)
+            initSettingsGear();
+
+            // Footer links (hold 2s to navigate — kid-safety)
+            initFooterLinkLocks();
+
+            // "Stay in the lines" checkbox (constrain drawing to current character)
+            const stayBox = document.getElementById('stayInLinesCheckbox');
+            stayBox.checked = stayInLines;
+            stayBox.addEventListener('change', () => {
+                stayInLines = stayBox.checked;
+                setCookie(STAY_IN_LINES_COOKIE, stayInLines ? '1' : '0', 365);
+                buildCharacterMask();
+                trackEvent('stay_in_lines_change', { enabled: stayInLines });
             });
 
-            document.getElementById('buyMeACoffeeLink').addEventListener('click', () => {
-                trackEvent('external_link_click', { link_name: 'buy_me_a_coffee' });
+            // "Characters per screen" select — 1/2/4/6/8/All. Persisted via cookie.
+            // Changing the page size re-aligns currentCharacterIndex to the new
+            // page boundary so the previously-shown char stays on-screen.
+            const cpsSelect = document.getElementById('charsPerScreenSelect');
+            cpsSelect.value = String(charsPerScreen);
+            cpsSelect.addEventListener('change', () => {
+                const parsed = parseCharsPerScreen(cpsSelect.value);
+                if (parsed === null) return;
+                const prevIndex = currentCharacterIndex;
+                charsPerScreen = parsed;
+                setCookie(CHARS_PER_SCREEN_COOKIE, String(charsPerScreen), 365);
+                if (charsPerScreen === 'all') {
+                    currentCharacterIndex = 0;
+                } else {
+                    currentCharacterIndex = Math.floor(prevIndex / charsPerScreen) * charsPerScreen;
+                }
+                clearCanvas();
+                updateCharacterDisplay();
+                trackEvent('chars_per_screen_change', { value: String(charsPerScreen) });
             });
             
             // 7. Language Switch Listeners
             // Note: switchLanguage handles saving the cookie
             langBtns.forEach(btn => {
-                btn.addEventListener('click', () => switchLanguage(btn.dataset.lang));
+                btn.addEventListener('click', () => {
+                    switchLanguage(btn.dataset.lang);
+                    closeSettingsPopover();
+                });
             });
 
             // 8. Modal Listeners
